@@ -1,0 +1,68 @@
+[
+  {
+    "id": "maj",
+    "name": "major",
+    "shortName": "maj",
+    "steps": [2, 2, 1, 2, 2, 2, 1]
+  },
+  {
+    "id": "min",
+    "name": "minor",
+    "shortName": "min",
+    "steps": [2, 1, 2, 2, 1, 2, 2]
+  },
+  {
+    "id": "mel",
+    "name": "melodic minor",
+    "shortName": "mel min",
+    "steps": [2, 1, 2, 2, 2, 2, 1]
+  },
+  {
+    "id": "harm",
+    "name": "harmonic minor",
+    "shortName": "harm min",
+    "steps": [2, 1, 2, 2, 1, 3, 1]
+  },
+  {
+    "id": "dor",
+    "name": "dorian",
+    "shortName": "dor",
+    "steps": [2, 1, 2, 2, 2, 1, 2]
+  },
+  {
+    "id": "lyd",
+    "name": "lydian",
+    "shortName": "lyd",
+    "steps": [2, 2, 2, 1, 2, 2, 1]
+  },
+  {
+    "id": "mix",
+    "name": "mixolydian",
+    "shortName": "mix",
+    "steps": [2, 2, 1, 2, 2, 1, 2]
+  },
+  {
+    "id": "phr",
+    "name": "phrygian",
+    "shortName": "phr",
+    "steps": [1, 2, 2, 2, 1, 2, 2]
+  },
+  {
+    "id": "wt",
+    "name": "whole tone",
+    "shortName": "whole",
+    "steps": [2, 2, 2, 2, 2, 2]
+  },
+  {
+    "id": "oct",
+    "name": "octatonic",
+    "shortName": "oct",
+    "steps": [2, 1, 2, 1, 2, 1, 2, 1]
+  },
+  {
+    "id": "chr",
+    "name": "chromatic",
+    "shortName": "chrom",
+    "steps": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+  }
+]

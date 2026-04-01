@@ -1,0 +1,128 @@
+[
+  {
+    "id": "5",
+    "name": "Power Chord",
+    "shortName": "5",
+    "family": "power",
+    "intervals": [0, 7]
+  },
+  {
+    "id": "sus2",
+    "name": "Suspended 2",
+    "shortName": "sus2",
+    "family": "suspended",
+    "intervals": [0, 2, 7]
+  },
+  {
+    "id": "sus4",
+    "name": "Suspended 4",
+    "shortName": "sus4",
+    "family": "suspended",
+    "intervals": [0, 5, 7]
+  },
+  {
+    "id": "maj",
+    "name": "Major",
+    "shortName": "",
+    "family": "triad",
+    "intervals": [0, 4, 7]
+  },
+  {
+    "id": "min",
+    "name": "Minor",
+    "shortName": "m",
+    "family": "triad",
+    "intervals": [0, 3, 7]
+  },
+  {
+    "id": "dim",
+    "name": "Diminished",
+    "shortName": "dim",
+    "family": "triad",
+    "intervals": [0, 3, 6]
+  },
+  {
+    "id": "aug",
+    "name": "Augmented",
+    "shortName": "aug",
+    "family": "triad",
+    "intervals": [0, 4, 8]
+  },
+  {
+    "id": "7",
+    "name": "Dominant 7",
+    "shortName": "7",
+    "family": "seventh",
+    "intervals": [0, 4, 7, 10]
+  },
+  {
+    "id": "maj7",
+    "name": "Major 7",
+    "shortName": "maj7",
+    "family": "seventh",
+    "intervals": [0, 4, 7, 11]
+  },
+  {
+    "id": "m7",
+    "name": "Minor 7",
+    "shortName": "m7",
+    "family": "seventh",
+    "intervals": [0, 3, 7, 10]
+  },
+  {
+    "id": "m7b5",
+    "name": "Half-Diminished 7",
+    "shortName": "m7b5",
+    "family": "seventh",
+    "intervals": [0, 3, 6, 10]
+  },
+  {
+    "id": "dim7",
+    "name": "Diminished 7",
+    "shortName": "dim7",
+    "family": "seventh",
+    "intervals": [0, 3, 6, 9]
+  },
+  {
+    "id": "6",
+    "name": "Major 6",
+    "shortName": "6",
+    "family": "sixth",
+    "intervals": [0, 4, 7, 9]
+  },
+  {
+    "id": "m6",
+    "name": "Minor 6",
+    "shortName": "m6",
+    "family": "sixth",
+    "intervals": [0, 3, 7, 9]
+  },
+  {
+    "id": "add9",
+    "name": "Add 9",
+    "shortName": "add9",
+    "family": "added-tone",
+    "intervals": [0, 4, 7, 14]
+  },
+  {
+    "id": "madd9",
+    "name": "Minor Add 9",
+    "shortName": "m(add9)",
+    "family": "added-tone",
+    "intervals": [0, 3, 7, 14]
+  },
+  {
+    "id": "6/9",
+    "name": "Major 6/9",
+    "shortName": "6/9",
+    "family": "sixth",
+    "intervals": [0, 4, 7, 9, 14]
+  },
+  {
+    "id": "m6/9",
+    "name": "Minor 6/9",
+    "shortName": "m6/9",
+    "family": "sixth",
+    "intervals": [0, 3, 7, 9, 14]
+  }
+]
