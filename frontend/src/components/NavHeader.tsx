@@ -1,9 +1,13 @@
 import * as React from 'react'
 import { Link as RouterLink } from '@tanstack/react-router'
-import { AppBar, Button, Container, Toolbar, Box, Typography, IconButton, Drawer, FormControlLabel, Switch, Stack } from '@mui/material'
+import { AppBar, Button, Container, IconButton, Box, Typography, Toolbar } from '@mui/material'
 import LibraryMusicIcon from '@mui/icons-material/LibraryMusic'
+import VolumeOffIcon from '@mui/icons-material/VolumeOff'
+import VolumeUpIcon from '@mui/icons-material/VolumeUp'
 import SettingsIcon from '@mui/icons-material/Settings'
-import { usePreferSimpleSpellings } from '../utils/preferences.ts'
+import { setMuted } from '../audio/soundfont.ts'
+import { useSoundMuted } from '../utils/preferences.ts'
+import { GlobalSettingsDrawer } from './GlobalSettingsDrawer.tsx'
 
 const pages = [
     { label: 'Scales', to: '/scales' },
@@ -12,7 +16,11 @@ const pages = [
 
 function NavHeader() {
     const [isSettingsOpen, setIsSettingsOpen] = React.useState(false)
-    const [preferSimpleSpellings, setPreferSimpleSpellings] = usePreferSimpleSpellings()
+    const [soundMuted, setSoundMuted] = useSoundMuted()
+
+    React.useEffect(() => {
+        setMuted(soundMuted)
+    }, [soundMuted])
 
     return (
         <AppBar position="static">
@@ -65,7 +73,14 @@ function NavHeader() {
                          ))}
                      </Box>
 
-                    <Box sx={{ ml: 'auto' }}>
+                    <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center' }}>
+                        <IconButton
+                            color="inherit"
+                            aria-label={soundMuted ? 'unmute sound' : 'mute sound'}
+                            onClick={() => setSoundMuted(!soundMuted)}
+                        >
+                            {soundMuted ? <VolumeOffIcon /> : <VolumeUpIcon />}
+                        </IconButton>
                         <IconButton color="inherit" aria-label="open settings" onClick={() => setIsSettingsOpen(true)}>
                             <SettingsIcon />
                         </IconButton>
@@ -73,25 +88,7 @@ function NavHeader() {
                 </Toolbar>
             </Container>
 
-            <Drawer anchor="right" open={isSettingsOpen} onClose={() => setIsSettingsOpen(false)}>
-                <Box sx={{ width: 320, p: 2.5 }}>
-                    <Stack spacing={2}>
-                        <Typography variant="h6">Settings</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Control how note spellings are shown across the app.
-                        </Typography>
-                        <FormControlLabel
-                            control={
-                                <Switch
-                                    checked={preferSimpleSpellings}
-                                    onChange={(_, checked) => setPreferSimpleSpellings(checked)}
-                                />
-                            }
-                            label="Prefer simpler note spellings"
-                        />
-                    </Stack>
-                </Box>
-            </Drawer>
+            <GlobalSettingsDrawer open={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
         </AppBar>
     )
 }

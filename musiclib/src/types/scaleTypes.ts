@@ -3,6 +3,6 @@ export type ScaleType = {
     name: string;
     shortName: string;
     steps: number[];
+    supportsHarmony?: boolean;
 };
-
 

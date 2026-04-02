@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import * as React from "react";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -7,12 +8,16 @@ import {
     Stack,
     Typography,
 } from "@mui/material";
+import { ScaleChordTable } from "../components/scales/ScaleChordTable.tsx";
 import { ScaleSettingsDrawer } from "../components/scales/ScaleSettingsDrawer.tsx";
-import type {Note, ScaleType} from "musiclib"
+import type {Note, ScaleType, Chord} from "musiclib"
 import {naturalNotes, getAllScaleTypes, constructScale, formatNote, formatNoteASCII, getScaleTypeById, noteFromString, simplifyScale} from "musiclib"
 import {NoteWheel} from "../components/scales/NoteWheel.tsx";
-import {CircleOfFifths} from "../components/scales/CircleOfFifths.tsx";
-import { usePreferSimpleSpellings, useStringPreference } from "../utils/preferences.ts";
+import {CircleOfFifths} from "../components/scales/CircleOfFifths/CircleOfFifths.tsx";
+import { useInstrument, usePreferSimpleSpellings, useStringPreference } from "../utils/preferences.ts";
+import {ChordPiano} from "../components/scales/ChordPiano.tsx";
+import { normalizeInstrumentName, playChord } from "../audio/soundfont.ts";
+
 
 const SELECTED_NOTE_KEY = "music-helper:selected-note";
 const SELECTED_SCALE_TYPE_KEY = "music-helper:selected-scale-type";
@@ -43,12 +48,35 @@ function ScalePage() {
     const selectedScaleType = React.useMemo(() => getSavedScaleType(savedScaleTypeId), [savedScaleTypeId])
 
     const [isScaleDrawerOpen, setIsScaleDrawerOpen] = React.useState(false);
+    const [selectedChord, setSelectedChord] = React.useState<Chord | undefined>(undefined);
     const [preferSimpleSpellings] = usePreferSimpleSpellings();
+    const [instrument] = useInstrument();
+    const selectedInstrument = React.useMemo(() => normalizeInstrumentName(instrument), [instrument]);
 
-    const scale = React.useMemo(() => {
-        const constructedScale = constructScale(selectedNote, selectedScaleType)
-        return preferSimpleSpellings ? simplifyScale(constructedScale) : constructedScale
-    }, [preferSimpleSpellings, selectedNote, selectedScaleType])
+    useEffect(() => {
+        if (selectedChord) {
+            playChord(selectedChord, 1, selectedInstrument);
+        }
+    }, [selectedChord]);
+
+    useEffect(() => {
+        setSelectedChord(undefined)
+    }, [selectedNote, selectedScaleType]);
+
+    const harmonicScale = React.useMemo(
+        () => constructScale(selectedNote, selectedScaleType),
+        [selectedNote, selectedScaleType]
+    )
+
+    const simplifiedScale = React.useMemo(
+        () => simplifyScale(harmonicScale),
+        [harmonicScale]
+    )
+
+    const displayScale = React.useMemo(
+        () => (preferSimpleSpellings ? simplifiedScale : harmonicScale),
+        [harmonicScale, preferSimpleSpellings, simplifiedScale]
+    )
 
 
 
@@ -114,7 +142,7 @@ function ScalePage() {
                             letterSpacing: "0.01em",
                         }}
                     >
-                        {formatNote(scale.tonic)}
+                        {formatNote(displayScale.tonic)}
                     </Typography>
                     <Typography
                         sx={{
@@ -125,7 +153,7 @@ function ScalePage() {
                             letterSpacing: "0.04em",
                         }}
                     >
-                        {scale.type.name}
+                        {displayScale.type.name}
                     </Typography>
 
                     <Box
@@ -138,48 +166,11 @@ function ScalePage() {
                             mt: 2,
                         }}
                     >
-                        <NoteWheel selectedScale={scale} size={420} />
-                        <CircleOfFifths selectedScale={scale} size={420} showChords />
+                        <NoteWheel selectedScale={displayScale} size={420} />
+                        <CircleOfFifths selectedScale={displayScale} size={420} showChords />
                     </Box>
-                    <Typography>
-                        {scale.harmony?.sevenths.map((chord) => {
-                            return chord.symbol
-                        })}
-                    </Typography>
-
-                    <Typography>
-                        {scale.harmony?.triads.map((chord) => {
-                            return chord.symbol
-                        })}
-                    </Typography>
-
-                    <Typography>
-                        {scale.derivedChords?.byKind.c6?.map((chord) => {
-                            return chord?.symbol
-                        })}
-                    </Typography>
-                    <Typography>
-                        {scale.derivedChords?.byKind.c5?.map((chord) => {
-                            return chord?.symbol
-                        })}
-                    </Typography>
-                    <Typography>
-                        {scale.derivedChords?.byKind.sus2?.map((chord) => {
-                            return chord?.symbol
-                        })}
-                    </Typography>
-                    <Typography>
-                        {scale.derivedChords?.byKind.sus4?.map((chord) => {
-                            return chord?.symbol
-                        })}
-                    </Typography>
-                    <Typography>
-                        {scale.derivedChords?.byKind.add9?.map((chord) => {
-                            return chord?.symbol
-                        })}
-                    </Typography>
-
-
+                    <ChordPiano scale={displayScale} selectedChord={selectedChord} showKeyNames={true}/>
+                    <ScaleChordTable scale={harmonicScale} onSelectChord={setSelectedChord} selectedChord={selectedChord} />
                 </Box>
             </Stack>
         </Box>

@@ -9,11 +9,12 @@ import {
     sortNaturalNotesFrom,
 } from "./notes.js";
 import {ScaleType} from "./scaleTypes.js";
-import {buildChord, buildScaleSevenths, buildScaleTriads, Chord, simplifyChord} from "./chords.js";
+import {buildChord, buildScaleSevenths, buildScaleTriads, Chord, detectTriadQuality, simplifyChord} from "./chords.js";
+import {ChordTypeId} from "./chordType.js";
 import {getChordTypeById} from "../presets/chordTypes.js";
 
 export type ScaleDerivedChordKind = "sus2" | "sus4" | "c6" | "add9" | "c5";
-const DERIVED_CHORD_TYPE_BY_KIND: Record<ScaleDerivedChordKind, "sus2" | "sus4" | "6" | "add9" | "5"> = {
+const DERIVED_CHORD_TYPE_BY_KIND: Record<ScaleDerivedChordKind, ChordTypeId> = {
     sus2: "sus2",
     sus4: "sus4",
     "c6": "6",
@@ -76,33 +77,43 @@ function withScaleOctave(note: Note, tonic: Note, step: number): Note {
     };
 }
 
-export function constructScale(tonic: Note, type: ScaleType): Scale {
+function spellScaleDegree(
+    pitchClass: PitchClass,
+    degreeIndex: number,
+    tonic: Note,
+    type: ScaleType,
+    naturalNotes: ReadonlyArray<Readonly<Note>>,
+    preference: "sharp" | "flat"
+): Note {
+    if (type.steps.length !== 7) {
+        return simplestSpelling(pitchClass, preference);
+    }
+
+    const naturalNote = naturalNotes[degreeIndex];
+    const spelledNote = noteFromPitchClassAndLetter(pitchClass, naturalNote.letter);
+
+    if (spelledNote === null) {
+        throw new Error(`Cannot spell scale degree ${degreeIndex + 1} for ${type.id} from tonic ${tonic.letter}.`);
+    }
+
+    return spelledNote;
+}
+
+function buildScaleDegrees(tonic: Note, type: ScaleType): ScaleDegree[] {
     const degrees: ScaleDegree[] = [];
     const enharmonicPreference = getEnharmonicPreference(tonic);
-    const sortedNaturalNotes = type.steps.length === 7 ? sortNaturalNotesFrom(tonic.letter) : [];
+    const naturalNotes = type.steps.length === 7 ? sortNaturalNotesFrom(tonic.letter) : [];
 
     let currentPitch = tonic.pitch as number;
     let currentStep = 0;
 
     for (let i = 0; i < type.steps.length; i += 1) {
         const pitchClass = mod(currentPitch, 12) as PitchClass;
-
-        let note: Note;
-
-        if (type.steps.length === 7) {
-            const naturalNote = sortedNaturalNotes[i];
-            const spelledNote = noteFromPitchClassAndLetter(pitchClass, naturalNote.letter);
-
-            if (spelledNote === null) {
-                throw new Error(`Cannot spell scale degree ${i + 1} for ${type.id} from tonic ${tonic.letter}.`);
-            }
-
-            note = spelledNote;
-        } else {
-            note = simplestSpelling(pitchClass, enharmonicPreference);
-        }
-
-        note = withScaleOctave(note, tonic, currentStep);
+        const note = withScaleOctave(
+            spellScaleDegree(pitchClass, i, tonic, type, naturalNotes, enharmonicPreference),
+            tonic,
+            currentStep
+        );
 
         degrees.push({
             degree: i + 1,
@@ -114,45 +125,44 @@ export function constructScale(tonic: Note, type: ScaleType): Scale {
         currentStep += type.steps[i];
     }
 
-    if (type.id == "chr" || type.id == "oct" || type.id == "wt" ) {
-        return {
-            type,
-            tonic,
-            notes: degrees.map((degree) => degree.note),
-            degrees,
-        }
-    }
+    return degrees;
+}
 
+function supportsScaleHarmony(type: ScaleType): boolean {
+    return type.supportsHarmony ?? true;
+}
 
+function addDegreeQualities(degrees: ScaleDegree[]): void {
     for (let i = 0; i < degrees.length; i += 1) {
         const rootPitch = degrees[i].note.pitch as number;
         const thirdPitch = degrees[(i + 2) % degrees.length].note.pitch as number;
         const fifthPitch = degrees[(i + 4) % degrees.length].note.pitch as number;
+        const quality = detectTriadQuality(rootPitch, thirdPitch, fifthPitch);
 
-        const rootToThird = mod(thirdPitch - rootPitch, 12);
-        const rootToFifth = mod(fifthPitch - rootPitch, 12);
-
-        let quality: NoteQuality;
-
-        if (rootToThird === 4 && rootToFifth === 7) {
-            quality = 'maj';
-        } else if (rootToThird === 3 && rootToFifth === 7) {
-            quality = 'min';
-        } else if (rootToThird === 3 && rootToFifth === 6) {
-            quality = 'dim';
-        } else if (rootToThird === 4 && rootToFifth === 8) {
-            quality = 'aug';
+        if (quality) {
+            degrees[i].quality = quality;
         }
-
-        degrees[i].quality = quality!;
     }
+}
 
-    const scale = {
+function createScaleBase(tonic: Note, type: ScaleType, degrees: ScaleDegree[]): Scale {
+    return {
         type,
         tonic,
         notes: degrees.map((degree) => degree.note),
         degrees,
     };
+}
+
+export function constructScale(tonic: Note, type: ScaleType): Scale {
+    const degrees = buildScaleDegrees(tonic, type);
+    const scale = createScaleBase(tonic, type, degrees);
+
+    if (!supportsScaleHarmony(type)) {
+        return scale;
+    }
+
+    addDegreeQualities(degrees);
 
     return {
         ...scale,
@@ -183,7 +193,7 @@ export function simplifyScale(
             byKind: Object.fromEntries(
                 Object.entries(scale.derivedChords.byKind).map(([kind, chords]) => [
                     kind,
-                    chords?.map((chord) => simplifyChord(chord!, preference)),
+                    chords?.map((chord) => chord ? simplifyChord(chord, preference) : null),
                 ])
             ) as ScaleDerivedChords["byKind"],
         }

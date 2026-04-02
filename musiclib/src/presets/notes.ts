@@ -20,6 +20,14 @@ const NATURAL_PITCHES: ReadonlyArray<readonly [NoteLetter, PitchClass]> = [
     ["B", 11],
 ];
 
+const SHARP_PITCHES: ReadonlyArray<readonly [NoteLetter, PitchClass]> = [
+    ["C", 1],
+    ["D", 3],
+    ["F", 6],
+    ["G", 8],
+    ["A", 10]
+]
+
 export const noteRows: ReadonlyArray<ReadonlyArray<Readonly<Note> | null>> = Object.freeze(
     NOTE_STRING_ROWS.map((row) =>
         Object.freeze(
@@ -34,5 +42,17 @@ export const noteRows: ReadonlyArray<ReadonlyArray<Readonly<Note> | null>> = Obj
 export const naturalNotes: ReadonlyArray<Readonly<Note>> = Object.freeze(
     NATURAL_PITCHES.map(([letter]) =>
         Object.freeze(createNote(letter, 0 as Alter))
+    )
+);
+
+export const sharpNotes: ReadonlyArray<Readonly<Note>> = Object.freeze(
+    SHARP_PITCHES.map(([letter]) =>
+        Object.freeze(createNote(letter, 1 as Alter))
+    )
+);
+
+export const pianoNotes: ReadonlyArray<Readonly<Note>> = Object.freeze(
+    [...naturalNotes, ...sharpNotes].sort(
+        (a, b) => a.pitch - b.pitch
     )
 );

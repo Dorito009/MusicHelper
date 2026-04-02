@@ -70,6 +70,20 @@
     "intervals": [0, 3, 7, 10]
   },
   {
+    "id": "mmaj7",
+    "name": "Minor Major 7",
+    "shortName": "mmaj7",
+    "family": "seventh",
+    "intervals": [0, 3, 7, 11]
+  },
+  {
+    "id": "maj7#5",
+    "name": "Augmented Major 7",
+    "shortName": "maj7#5",
+    "family": "seventh",
+    "intervals": [0, 4, 8, 11]
+  },
+  {
     "id": "m7b5",
     "name": "Half-Diminished 7",
     "shortName": "m7b5",

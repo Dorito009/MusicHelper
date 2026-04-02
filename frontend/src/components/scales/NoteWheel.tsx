@@ -1,5 +1,9 @@
-import { Box, useTheme } from "@mui/material";
+import * as React from "react";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import { Box, IconButton, useTheme } from "@mui/material";
 import { formatNoteUnicode, noteFromPitchClass, type Note, type PitchClass, type Scale } from "musiclib";
+import { normalizeInstrumentName, playScale } from "../../audio/soundfont.ts";
+import { useInstrument } from "../../utils/preferences.ts";
 
 type NoteWheelProps = {
     selectedScale: Scale;
@@ -45,12 +49,23 @@ function noteLabel(note: Note) {
 
 export function NoteWheel({ selectedScale, size = 480 }: NoteWheelProps) {
     const theme = useTheme();
+    const [instrument] = useInstrument();
+    const [activePitch, setActivePitch] = React.useState<number | null>(null);
+    const selectedInstrument = normalizeInstrumentName(instrument);
     const sliceSpan = 360 / CHROMATIC_NOTES.length;
     const notesByPitch = new Map(selectedScale.notes.map((note) => [note.pitch, note]));
     const tonicPitch = selectedScale.tonic.pitch;
 
+    const handlePlayScale = () => {
+        void playScale(selectedScale, selectedInstrument, 4, 0.42, 0.48, setActivePitch, () => setActivePitch(null));
+    };
+
+    React.useEffect(() => {
+        setActivePitch(null);
+    }, [selectedScale]);
+
     return (
-            <Box sx={{ width: size, maxWidth: "100%", mx: "auto", userSelect: "none", WebkitUserSelect: "none" }}>
+            <Box sx={{ width: size, maxWidth: "100%", mx: "auto", position: "relative", userSelect: "none", WebkitUserSelect: "none" }}>
                 <svg
                     viewBox="0 0 100 100"
                     width="100%"
@@ -65,11 +80,14 @@ export function NoteWheel({ selectedScale, size = 480 }: NoteWheelProps) {
                         const scaleNote = notesByPitch.get(chromaticNote.pitch);
                         const isAllowed = scaleNote !== undefined;
                         const isTonic = chromaticNote.pitch === tonicPitch;
+                        const isActive = chromaticNote.pitch === activePitch;
                         const labelPoint = polarToCartesian(50, 50, (OUTER_RADIUS + INNER_RADIUS) / 2, midAngle);
                         const fill = isAllowed
-                            ? isTonic
-                                ? theme.palette.grey[700]
-                                : theme.palette.grey[800]
+                            ? isActive
+                                ? theme.palette.secondary.main
+                                : isTonic
+                                    ? theme.palette.grey[700]
+                                    : theme.palette.grey[800]
                             : theme.palette.grey[900];
 
                         return (
@@ -93,6 +111,30 @@ export function NoteWheel({ selectedScale, size = 480 }: NoteWheelProps) {
                         );
                     })}
                 </svg>
+                <IconButton
+                    onClick={handlePlayScale}
+                    aria-label={`Play ${noteLabel(selectedScale.tonic)} ${selectedScale.type.name} scale`}
+                    sx={{
+                        position: "absolute",
+                        inset: 0,
+                        margin: "auto",
+                        width: "17%",
+                        height: "17%",
+                        minWidth: 0,
+                        minHeight: 0,
+                        p: 0,
+                        borderRadius: "50%",
+                        border: `2px solid ${theme.palette.divider}`,
+                        bgcolor: theme.palette.background.paper,
+                        color: theme.palette.text.primary,
+                        boxShadow: theme.shadows[3],
+                        "&:hover": {
+                            bgcolor: theme.palette.grey[100],
+                        },
+                    }}
+                >
+                    <PlayArrowIcon sx={{ fontSize: "1.45rem" }} />
+                </IconButton>
             </Box>
     );
 }

@@ -51,18 +51,21 @@
     "id": "wt",
     "name": "whole tone",
     "shortName": "whole",
-    "steps": [2, 2, 2, 2, 2, 2]
+    "steps": [2, 2, 2, 2, 2, 2],
+    "supportsHarmony": false
   },
   {
     "id": "oct",
     "name": "octatonic",
     "shortName": "oct",
-    "steps": [2, 1, 2, 1, 2, 1, 2, 1]
+    "steps": [2, 1, 2, 1, 2, 1, 2, 1],
+    "supportsHarmony": false
   },
   {
     "id": "chr",
     "name": "chromatic",
     "shortName": "chrom",
-    "steps": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    "steps": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    "supportsHarmony": false
   }
 ]

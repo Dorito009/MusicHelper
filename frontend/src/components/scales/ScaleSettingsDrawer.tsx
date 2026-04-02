@@ -1,7 +1,13 @@
 import {
     Box,
+    Checkbox,
     Chip,
+    Divider,
     Drawer,
+    FormControl,
+    FormControlLabel,
+    FormGroup,
+    FormLabel,
     IconButton,
     Tooltip,
     Typography,
@@ -10,8 +16,20 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import {noteRows, formatNote, getAllScaleTypes} from "musiclib"
 import type {Note, ScaleType} from "musiclib"
+import { type ChordVisibilityKey, useChordVisibilityPreferences } from "../../utils/preferences.ts";
 
 export const SCALE_DRAWER_WIDTH = 260;
+
+const chordVisibilityOptions: Array<{ key: ChordVisibilityKey; label: string }> = [
+    { key: "sus2", label: "Sus2" },
+    { key: "triads", label: "Triad" },
+    { key: "sus4", label: "Sus4" },
+    { key: "sevenths", label: "7" },
+    { key: "fifths", label: "5" },
+    { key: "sixths", label: "6" },
+    { key: "add9", label: "9" },
+];
+
 type ScaleSettingsDrawerProps = {
     open: boolean;
     onClose: () => void;
@@ -32,6 +50,7 @@ export function ScaleSettingsDrawer({
                                         onSelectScaleType
                                      }: ScaleSettingsDrawerProps) {
     const theme = useTheme();
+    const [chordVisibility, , setChordVisibility] = useChordVisibilityPreferences();
 
     const drawerInner = (
         <Box
@@ -55,7 +74,6 @@ export function ScaleSettingsDrawer({
                     gridTemplateColumns: "120px 1fr",
                     columnGap: 1.25,
                     alignItems: "start",
-                    flex: 1,
                     minHeight: 0,
                 }}
             >
@@ -159,6 +177,26 @@ export function ScaleSettingsDrawer({
                     </Box>
                 </Box>
             </Box>
+
+            <Divider sx={{ my: 1.5 }} />
+
+            <FormControl component="fieldset" variant="standard">
+                <FormLabel component="legend">Scale chord groups</FormLabel>
+                <FormGroup>
+                    {chordVisibilityOptions.map((option) => (
+                        <FormControlLabel
+                            key={option.key}
+                            control={
+                                <Checkbox
+                                    checked={chordVisibility[option.key]}
+                                    onChange={(_, checked) => setChordVisibility(option.key, checked)}
+                                />
+                            }
+                            label={option.label}
+                        />
+                    ))}
+                </FormGroup>
+            </FormControl>
         </Box>
     );
 

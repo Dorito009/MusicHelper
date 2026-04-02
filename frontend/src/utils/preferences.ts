@@ -2,6 +2,24 @@ import * as React from "react";
 
 const SETTINGS_EVENT = "music-helper:settings-changed";
 const PREFER_SIMPLE_SPELLINGS_KEY = "music-helper:prefer-simple-spellings";
+const PREFER_SIMPLE_CHORD_LABELS_KEY = "music-helper:prefer-simple-chord-labels";
+const CHORD_VISIBILITY_KEY = "music-helper:chord-visibility";
+const SOUND_MUTED_KEY = "music-helper:sound-muted";
+const INSTRUMENT_KEY = "music-helper:instrument";
+
+export type ChordVisibilityKey = "sus2" | "triads" | "sus4" | "sevenths" | "fifths" | "sixths" | "add9";
+
+export type ChordVisibilitySettings = Record<ChordVisibilityKey, boolean>;
+
+const DEFAULT_CHORD_VISIBILITY_SETTINGS: ChordVisibilitySettings = {
+    sus2: true,
+    triads: true,
+    sus4: true,
+    sevenths: true,
+    fifths: false,
+    sixths: false,
+    add9: false,
+};
 
 function readStringSetting(key: string, defaultValue: string): string {
     if (typeof window === "undefined") {
@@ -25,6 +43,33 @@ function readBooleanSetting(key: string, defaultValue: boolean): boolean {
     return storedValue === "true";
 }
 
+function readJsonSetting<T extends object>(key: string, defaultValue: T): T {
+    if (typeof window === "undefined") {
+        return defaultValue;
+    }
+
+    const storedValue = window.localStorage.getItem(key);
+
+    if (storedValue === null) {
+        return defaultValue;
+    }
+
+    try {
+        const parsedValue = JSON.parse(storedValue);
+
+        if (parsedValue && typeof parsedValue === "object") {
+            return {
+                ...defaultValue,
+                ...parsedValue,
+            };
+        }
+    } catch {
+        return defaultValue;
+    }
+
+    return defaultValue;
+}
+
 function writeBooleanSetting(key: string, value: boolean) {
     window.localStorage.setItem(key, String(value));
     window.dispatchEvent(new CustomEvent(SETTINGS_EVENT, { detail: { key, value } }));
@@ -32,6 +77,11 @@ function writeBooleanSetting(key: string, value: boolean) {
 
 function writeStringSetting(key: string, value: string) {
     window.localStorage.setItem(key, value);
+    window.dispatchEvent(new CustomEvent(SETTINGS_EVENT, { detail: { key, value } }));
+}
+
+function writeJsonSetting<T extends object>(key: string, value: T) {
+    window.localStorage.setItem(key, JSON.stringify(value));
     window.dispatchEvent(new CustomEvent(SETTINGS_EVENT, { detail: { key, value } }));
 }
 
@@ -118,3 +168,70 @@ export function useStringPreference(key: string, defaultValue: string) {
 export function usePreferSimpleSpellings() {
     return useBooleanPreference(PREFER_SIMPLE_SPELLINGS_KEY, false);
 }
+
+export function usePreferSimpleChordLabels() {
+    return useBooleanPreference(PREFER_SIMPLE_CHORD_LABELS_KEY, false);
+}
+
+export function useChordVisibilityPreferences() {
+    const [value, setValue] = React.useState(() => readJsonSetting(CHORD_VISIBILITY_KEY, DEFAULT_CHORD_VISIBILITY_SETTINGS));
+
+    React.useEffect(() => {
+        const handleStorage = (event: StorageEvent) => {
+            if (event.key !== CHORD_VISIBILITY_KEY) {
+                return;
+            }
+
+            setValue(event.newValue === null
+                ? DEFAULT_CHORD_VISIBILITY_SETTINGS
+                : readJsonSetting(CHORD_VISIBILITY_KEY, DEFAULT_CHORD_VISIBILITY_SETTINGS));
+        };
+
+        const handleSettingsChange = (event: Event) => {
+            const customEvent = event as CustomEvent<{ key?: string; value?: ChordVisibilitySettings }>;
+
+            if (customEvent.detail?.key === CHORD_VISIBILITY_KEY && customEvent.detail.value) {
+                setValue({
+                    ...DEFAULT_CHORD_VISIBILITY_SETTINGS,
+                    ...customEvent.detail.value,
+                });
+            }
+        };
+
+        window.addEventListener("storage", handleStorage);
+        window.addEventListener(SETTINGS_EVENT, handleSettingsChange as EventListener);
+
+        return () => {
+            window.removeEventListener("storage", handleStorage);
+            window.removeEventListener(SETTINGS_EVENT, handleSettingsChange as EventListener);
+        };
+    }, []);
+
+    const updateValue = React.useCallback((nextValue: ChordVisibilitySettings) => {
+        setValue(nextValue);
+        writeJsonSetting(CHORD_VISIBILITY_KEY, nextValue);
+    }, []);
+
+    const updateSingleValue = React.useCallback((key: ChordVisibilityKey, checked: boolean) => {
+        setValue((previousValue) => {
+            const nextValue = {
+                ...previousValue,
+                [key]: checked,
+            };
+
+            writeJsonSetting(CHORD_VISIBILITY_KEY, nextValue);
+            return nextValue;
+        });
+    }, []);
+
+    return [value, updateValue, updateSingleValue] as const;
+}
+
+export function useSoundMuted() {
+    return useBooleanPreference(SOUND_MUTED_KEY, false);
+}
+
+export function useInstrument() {
+    return useStringPreference(INSTRUMENT_KEY, "acoustic_grand_piano");
+}
+
