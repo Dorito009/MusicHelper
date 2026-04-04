@@ -2,6 +2,7 @@ import { Box, Drawer, FormControl, FormControlLabel, InputLabel, MenuItem, Selec
 import type { SelectChangeEvent } from "@mui/material";
 import { formatInstrumentLabel, normalizeInstrumentName, ORCHESTRATION_INSTRUMENTS, playInstrumentPreview } from "../audio/soundfont.ts";
 import { NOTE_DISPLAY_TEXT_SX } from "../utils/noteDisplay.ts";
+import type { DoubleAccidentalDisplay, SingleAccidentalDisplay } from "../utils/preferences.ts";
 import { useAccidentalDisplayPreference, useInstrument, usePreferSimpleChordLabels, usePreferSimpleSpellings } from "../utils/preferences.ts";
 
 type GlobalSettingsDrawerProps = {
@@ -71,7 +72,7 @@ export function GlobalSettingsDrawer({ open, onClose }: GlobalSettingsDrawerProp
                             value={accidentalDisplay.sharp}
                             label="Sharp"
                             sx={NOTE_DISPLAY_TEXT_SX}
-                            onChange={(event) => setAccidentalDisplay("sharp", event.target.value as "ascii" | "unicode")}
+                            onChange={(event) => setAccidentalDisplay("sharp", event.target.value as SingleAccidentalDisplay)}
                         >
                             <MenuItem value="unicode" sx={NOTE_DISPLAY_TEXT_SX}>C♯</MenuItem>
                             <MenuItem value="ascii" sx={NOTE_DISPLAY_TEXT_SX}>C#</MenuItem>
@@ -84,7 +85,7 @@ export function GlobalSettingsDrawer({ open, onClose }: GlobalSettingsDrawerProp
                             value={accidentalDisplay.flat}
                             label="Flat"
                             sx={NOTE_DISPLAY_TEXT_SX}
-                            onChange={(event) => setAccidentalDisplay("flat", event.target.value as "ascii" | "unicode")}
+                            onChange={(event) => setAccidentalDisplay("flat", event.target.value as SingleAccidentalDisplay)}
                         >
                             <MenuItem value="unicode" sx={NOTE_DISPLAY_TEXT_SX}>C♭</MenuItem>
                             <MenuItem value="ascii" sx={NOTE_DISPLAY_TEXT_SX}>Cb</MenuItem>
@@ -97,7 +98,7 @@ export function GlobalSettingsDrawer({ open, onClose }: GlobalSettingsDrawerProp
                             value={accidentalDisplay.doubleSharp}
                             label="Double Sharp"
                             sx={NOTE_DISPLAY_TEXT_SX}
-                            onChange={(event) => setAccidentalDisplay("doubleSharp", event.target.value as "ascii" | "unicode" | "repeated-unicode")}
+                            onChange={(event) => setAccidentalDisplay("doubleSharp", event.target.value as DoubleAccidentalDisplay)}
                         >
                             <MenuItem value="unicode" sx={NOTE_DISPLAY_TEXT_SX}>C𝄪</MenuItem>
                             <MenuItem value="repeated-unicode" sx={NOTE_DISPLAY_TEXT_SX}>C♯♯</MenuItem>
@@ -111,7 +112,7 @@ export function GlobalSettingsDrawer({ open, onClose }: GlobalSettingsDrawerProp
                             value={accidentalDisplay.doubleFlat}
                             label="Double Flat"
                             sx={NOTE_DISPLAY_TEXT_SX}
-                            onChange={(event) => setAccidentalDisplay("doubleFlat", event.target.value as "ascii" | "unicode" | "repeated-unicode")}
+                            onChange={(event) => setAccidentalDisplay("doubleFlat", event.target.value as DoubleAccidentalDisplay)}
                         >
                             <MenuItem value="unicode" sx={NOTE_DISPLAY_TEXT_SX}>C𝄫</MenuItem>
                             <MenuItem value="repeated-unicode" sx={NOTE_DISPLAY_TEXT_SX}>C♭♭</MenuItem>

@@ -1,6 +1,6 @@
 export type NoteLetter = "A" | "B" | "C" | "D" | "E" | "F" | "G";
 export type NoteQuality = "maj" | "min" | "dim" | "aug"
-export type Alter = -2 | -1 | 0 | 1 | 2;
+export type Alter = -3 | -2 | -1 | 0 | 1 | 2 | 3;
 export type PitchClass = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;
 
 export type AccidentalFormat = "unicode" | "ascii";
@@ -52,32 +52,50 @@ const SIMPLE_FLAT: Record<PitchClass, { letter: NoteLetter; alter: Alter }> = {
     11: { letter: "B", alter: 0 },
 };
 const ALTER_TO_ASCII: Record<Alter, string> = {
+    [-3]: "bbb",
     [-2]: "bb",
     [-1]: "b",
     [0]: "",
     [1]: "#",
     [2]: "##",
+    [3]: "###",
 };
 const ASCII_TO_ALTER: Record<string, Alter> = {
+    bbb: -3,
     bb: -2,
     b: -1,
     "": 0,
     "#": 1,
     "##": 2,
+    "###": 3,
 };
 const ALTER_TO_UNICODE: Record<Alter, string> = {
+    [-3]: "♭♭♭",
     [-2]: "𝄫",
     [-1]: "♭",
     [0]: "",
     [1]: "♯",
     [2]: "𝄪",
+    [3]: "♯♯♯",
 };
 const UNICODE_TO_ALTER: Record<string, Alter> = {
+    "♭♭♭": -3,
+    "𝄫♭": -3,
+    "♭𝄫": -3,
+    "♭♭": -2,
     "𝄫": -2,
     "♭": -1,
     "": 0,
     "♯": 1,
+    "♯♯": 2,
     "𝄪": 2,
+    "♯♯♯": 3,
+    "𝄪♯": 3,
+    "♯𝄪": 3,
+};
+const ACCIDENTAL_TO_ALTER: Record<string, Alter> = {
+    ...ASCII_TO_ALTER,
+    ...UNICODE_TO_ALTER,
 };
 
 function mod(n: number, m: number): number {
@@ -135,7 +153,7 @@ export function parseNote(input: string): Note | null {
         return null;
     }
 
-    const match = value.match(/^([A-Ga-g])(bb|b|##|𝄫|#|♭|𝄪|♯)?(-?\d+)?$/u);
+    const match = value.match(/^([A-Ga-g])([#b♭♯𝄪𝄫]*)?(-?\d+)?$/u);
 
     if (!match) {
         return null;
@@ -143,7 +161,7 @@ export function parseNote(input: string): Note | null {
 
     const [, rawLetter, rawAccidental = "", rawOctave] = match;
     const letter = rawLetter.toUpperCase() as NoteLetter;
-    const alter = ASCII_TO_ALTER[rawAccidental] ?? UNICODE_TO_ALTER[rawAccidental];
+    const alter = ACCIDENTAL_TO_ALTER[rawAccidental];
 
     if (alter === undefined) {
         return null;
@@ -159,9 +177,9 @@ export function fromPitchClassAndLetter(pitch: PitchClass, letter: NoteLetter): 
 
     let alter: Alter | null = null;
 
-    if (upward <= 2) {
+    if (upward <= 3) {
         alter = upward as Alter;
-    } else if (upward >= 10) {
+    } else if (upward >= 9) {
         alter = (upward - 12) as Alter;
     }
 

@@ -12,11 +12,14 @@ export type ChordVisibilityKey = "sus2" | "triads" | "sus4" | "sevenths" | "fift
 
 export type ChordVisibilitySettings = Record<ChordVisibilityKey, boolean>;
 
+export type SingleAccidentalDisplay = "ascii" | "unicode";
+export type DoubleAccidentalDisplay = "ascii" | "unicode" | "repeated-unicode";
+
 export type AccidentalDisplay = {
-    sharp: "ascii" | "unicode";
-    flat: "ascii" | "unicode";
-    doubleSharp: "ascii" | "unicode" | "repeated-unicode";
-    doubleFlat: "ascii" | "unicode" | "repeated-unicode";
+    sharp: SingleAccidentalDisplay;
+    flat: SingleAccidentalDisplay;
+    doubleSharp: DoubleAccidentalDisplay;
+    doubleFlat: DoubleAccidentalDisplay;
 };
 
 type AccidentalDisplayValue = AccidentalDisplay[keyof AccidentalDisplay];
@@ -62,6 +65,27 @@ function getDefaultAccidentalDisplay(): AccidentalDisplay {
     }
 
     return DEFAULT_ACCIDENTAL_DISPLAY;
+}
+
+function isSingleAccidentalDisplay(value: unknown): value is SingleAccidentalDisplay {
+    return value === "ascii" || value === "unicode";
+}
+
+function isDoubleAccidentalDisplay(value: unknown): value is DoubleAccidentalDisplay {
+    return value === "ascii" || value === "unicode" || value === "repeated-unicode";
+}
+
+function normalizeAccidentalDisplay(value: unknown, fallback: AccidentalDisplay = getDefaultAccidentalDisplay()): AccidentalDisplay {
+    const candidate = value && typeof value === "object"
+        ? value as Partial<Record<keyof AccidentalDisplay, unknown>>
+        : {};
+
+    return {
+        sharp: isSingleAccidentalDisplay(candidate.sharp) ? candidate.sharp : fallback.sharp,
+        flat: isSingleAccidentalDisplay(candidate.flat) ? candidate.flat : fallback.flat,
+        doubleSharp: isDoubleAccidentalDisplay(candidate.doubleSharp) ? candidate.doubleSharp : fallback.doubleSharp,
+        doubleFlat: isDoubleAccidentalDisplay(candidate.doubleFlat) ? candidate.doubleFlat : fallback.doubleFlat,
+    };
 }
 
 function readStringSetting(key: string, defaultValue: string): string {
@@ -271,7 +295,9 @@ export function useChordVisibilityPreferences() {
 }
 
 export function useAccidentalDisplayPreference() {
-    const [value, setValue] = React.useState(() => readJsonSetting(ACCIDENTAL_DISPLAY_KEY, getDefaultAccidentalDisplay()));
+    const [value, setValue] = React.useState(() => normalizeAccidentalDisplay(
+        readJsonSetting(ACCIDENTAL_DISPLAY_KEY, getDefaultAccidentalDisplay())
+    ));
 
     React.useEffect(() => {
         const handleStorage = (event: StorageEvent) => {
@@ -279,19 +305,18 @@ export function useAccidentalDisplayPreference() {
                 return;
             }
 
-            setValue(event.newValue === null
-                ? getDefaultAccidentalDisplay()
-                : readJsonSetting(ACCIDENTAL_DISPLAY_KEY, getDefaultAccidentalDisplay()));
+            setValue(normalizeAccidentalDisplay(
+                event.newValue === null
+                    ? getDefaultAccidentalDisplay()
+                    : readJsonSetting(ACCIDENTAL_DISPLAY_KEY, getDefaultAccidentalDisplay())
+            ));
         };
 
         const handleSettingsChange = (event: Event) => {
             const customEvent = event as CustomEvent<{ key?: string; value?: AccidentalDisplay }>;
 
             if (customEvent.detail?.key === ACCIDENTAL_DISPLAY_KEY && customEvent.detail.value) {
-                setValue({
-                    ...getDefaultAccidentalDisplay(),
-                    ...customEvent.detail.value,
-                });
+                setValue(normalizeAccidentalDisplay(customEvent.detail.value));
             }
         };
 
@@ -305,8 +330,9 @@ export function useAccidentalDisplayPreference() {
     }, []);
 
     const updateValue = React.useCallback((nextValue: AccidentalDisplay) => {
-        setValue(nextValue);
-        writeJsonSetting(ACCIDENTAL_DISPLAY_KEY, nextValue);
+        const normalizedValue = normalizeAccidentalDisplay(nextValue);
+        setValue(normalizedValue);
+        writeJsonSetting(ACCIDENTAL_DISPLAY_KEY, normalizedValue);
     }, []);
 
     const updateSingleValue = React.useCallback((key: keyof AccidentalDisplay, nextValue: AccidentalDisplayValue) => {
