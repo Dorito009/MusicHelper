@@ -3,9 +3,12 @@ import { routeTree } from './routeTree.gen';
 import {NotFoundComponent} from "./components/404.tsx";
 import {ErrorComponent} from "./components/Error.tsx";
 
+const basepath = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
+
 // Create constant router instance
 export const router = createRouter({
     routeTree,
+    basepath,
     defaultPreload: false,
     defaultNotFoundComponent: NotFoundComponent,
     defaultErrorComponent: ErrorComponent,
