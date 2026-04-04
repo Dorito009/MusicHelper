@@ -1,7 +1,8 @@
 import { Box, Drawer, FormControl, FormControlLabel, InputLabel, MenuItem, Select, Stack, Switch, Typography } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
 import { formatInstrumentLabel, normalizeInstrumentName, ORCHESTRATION_INSTRUMENTS, playInstrumentPreview } from "../audio/soundfont.ts";
-import { useInstrument, usePreferSimpleChordLabels, usePreferSimpleSpellings } from "../utils/preferences.ts";
+import { NOTE_DISPLAY_TEXT_SX } from "../utils/noteDisplay.ts";
+import { useAccidentalDisplayPreference, useInstrument, usePreferSimpleChordLabels, usePreferSimpleSpellings } from "../utils/preferences.ts";
 
 type GlobalSettingsDrawerProps = {
     open: boolean;
@@ -12,6 +13,7 @@ export function GlobalSettingsDrawer({ open, onClose }: GlobalSettingsDrawerProp
     const [preferSimpleSpellings, setPreferSimpleSpellings] = usePreferSimpleSpellings();
     const [preferSimpleChordLabels, setPreferSimpleChordLabels] = usePreferSimpleChordLabels();
     const [instrument, setInstrument] = useInstrument();
+    const [accidentalDisplay, , setAccidentalDisplay] = useAccidentalDisplayPreference();
     const selectedInstrument = normalizeInstrumentName(instrument);
 
     const handleInstrumentChange = (event: SelectChangeEvent<string>) => {
@@ -59,6 +61,61 @@ export function GlobalSettingsDrawer({ open, onClose }: GlobalSettingsDrawerProp
                                     {formatInstrumentLabel(instrumentName)}
                                 </MenuItem>
                             ))}
+                        </Select>
+                    </FormControl>
+                    <Typography variant="subtitle2">Accidental Display</Typography>
+                    <FormControl fullWidth size="small">
+                        <InputLabel id="sharp-display-label">Sharp</InputLabel>
+                        <Select
+                            labelId="sharp-display-label"
+                            value={accidentalDisplay.sharp}
+                            label="Sharp"
+                            sx={NOTE_DISPLAY_TEXT_SX}
+                            onChange={(event) => setAccidentalDisplay("sharp", event.target.value as "ascii" | "unicode")}
+                        >
+                            <MenuItem value="unicode" sx={NOTE_DISPLAY_TEXT_SX}>C♯</MenuItem>
+                            <MenuItem value="ascii" sx={NOTE_DISPLAY_TEXT_SX}>C#</MenuItem>
+                        </Select>
+                    </FormControl>
+                    <FormControl fullWidth size="small">
+                        <InputLabel id="flat-display-label">Flat</InputLabel>
+                        <Select
+                            labelId="flat-display-label"
+                            value={accidentalDisplay.flat}
+                            label="Flat"
+                            sx={NOTE_DISPLAY_TEXT_SX}
+                            onChange={(event) => setAccidentalDisplay("flat", event.target.value as "ascii" | "unicode")}
+                        >
+                            <MenuItem value="unicode" sx={NOTE_DISPLAY_TEXT_SX}>C♭</MenuItem>
+                            <MenuItem value="ascii" sx={NOTE_DISPLAY_TEXT_SX}>Cb</MenuItem>
+                        </Select>
+                    </FormControl>
+                    <FormControl fullWidth size="small">
+                        <InputLabel id="double-sharp-display-label">Double Sharp</InputLabel>
+                        <Select
+                            labelId="double-sharp-display-label"
+                            value={accidentalDisplay.doubleSharp}
+                            label="Double Sharp"
+                            sx={NOTE_DISPLAY_TEXT_SX}
+                            onChange={(event) => setAccidentalDisplay("doubleSharp", event.target.value as "ascii" | "unicode" | "repeated-unicode")}
+                        >
+                            <MenuItem value="unicode" sx={NOTE_DISPLAY_TEXT_SX}>C𝄪</MenuItem>
+                            <MenuItem value="repeated-unicode" sx={NOTE_DISPLAY_TEXT_SX}>C♯♯</MenuItem>
+                            <MenuItem value="ascii" sx={NOTE_DISPLAY_TEXT_SX}>C##</MenuItem>
+                        </Select>
+                    </FormControl>
+                    <FormControl fullWidth size="small">
+                        <InputLabel id="double-flat-display-label">Double Flat</InputLabel>
+                        <Select
+                            labelId="double-flat-display-label"
+                            value={accidentalDisplay.doubleFlat}
+                            label="Double Flat"
+                            sx={NOTE_DISPLAY_TEXT_SX}
+                            onChange={(event) => setAccidentalDisplay("doubleFlat", event.target.value as "ascii" | "unicode" | "repeated-unicode")}
+                        >
+                            <MenuItem value="unicode" sx={NOTE_DISPLAY_TEXT_SX}>C𝄫</MenuItem>
+                            <MenuItem value="repeated-unicode" sx={NOTE_DISPLAY_TEXT_SX}>C♭♭</MenuItem>
+                            <MenuItem value="ascii" sx={NOTE_DISPLAY_TEXT_SX}>Cbb</MenuItem>
                         </Select>
                     </FormControl>
                 </Stack>

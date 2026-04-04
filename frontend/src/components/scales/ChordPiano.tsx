@@ -1,11 +1,13 @@
+import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import type { Chord, Scale, Note, PitchClass } from "musiclib";
-import { pianoNotes, formatNote, simplifyNote } from "musiclib";
+import { pianoNotes, simplifyNote } from "musiclib";
 import { Box, Typography, useTheme } from "@mui/material";
 import React from "react";
+import { NOTE_DISPLAY_TEXT_SX, useNoteFormatter } from "../../utils/noteDisplay.ts";
 import { usePreferSimpleSpellings } from "../../utils/preferences.ts";
 
 type ChordPianoProps = {
-    scale: Scale;
+    scale?: Scale;
     selectedChord?: Chord;
     showKeyNames?: boolean;
 };
@@ -96,6 +98,7 @@ export function ChordPiano({
                             }: ChordPianoProps) {
     const theme = useTheme();
     const [preferSimpleSpellings] = usePreferSimpleSpellings();
+    const { formatNote, formatText } = useNoteFormatter();
 
     let notesInChord = selectedChord?.notes ?? [];
 
@@ -116,7 +119,7 @@ export function ChordPiano({
     );
 
     const pitchesInScale = new Set(
-        scale.notes.map(note => getPitchClass(note.pitch)) ?? []
+        scale?.notes.map(note => getPitchClass(note.pitch)) ?? pianoNotes.map(note => getPitchClass(note.pitch))
     );
 
     const whiteKeyWidth = 55;
@@ -147,28 +150,45 @@ export function ChordPiano({
                     justifyContent: "center",
                 }}
             >
-                <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                    Chord Notes:
+                <Typography variant="caption" sx={{ ...NOTE_DISPLAY_TEXT_SX, color: "text.secondary" }}>
+                    {selectedChord ? `Notes in ${formatText(selectedChord.symbol)}:` : "Chord Notes:"}
                 </Typography>
 
                 <Typography
                     variant="h6"
                     sx={{
                         fontWeight: 600,
+                        display: "flex",
+                        flexWrap: "wrap",
+                        justifyContent: "center",
                         alignItems: "center",
+                        gap: 0.5,
                         visibility: chordNotesIn2Octaves.length > 0 ? "visible" : "hidden",
                     }}
                 >
                     {chordNotesIn2Octaves.length > 0
                         ? chordNotesIn2Octaves.map((note, idx) => (
-                            <Box key={idx} component="span">
-                                {idx > 0 && " 🡒 "}
-                                <Box component="span" sx={{ color: "primary.main" }}>
+                            <React.Fragment key={idx}>
+                                {idx > 0 && (
+                                    <Box
+                                        component="span"
+                                        sx={{
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            color: "text.secondary",
+                                            lineHeight: 1,
+                                        }}
+                                    >
+                                        <ArrowForwardRoundedIcon sx={{ fontSize: "1rem" }} />
+                                    </Box>
+                                )}
+                                        <Box component="span" sx={{ ...NOTE_DISPLAY_TEXT_SX, color: "primary.main", lineHeight: 1.1 }}>
                                     {formatNote(note)}
                                 </Box>
-                            </Box>
+                            </React.Fragment>
                         ))
-                        : "C → E → G → B"}
+                        : " "}
                 </Typography>
             </Box>
 
@@ -204,7 +224,6 @@ export function ChordPiano({
                                         : isInScale
                                             ? theme.palette.grey[700]
                                             : theme.palette.grey[900],
-                                    cursor: "pointer",
                                     transition: "background-color 0.2s",
                                     position: "relative",
                                     display: "flex",
@@ -224,7 +243,7 @@ export function ChordPiano({
                                             fontWeight: isInChord ? 700 : 500,
                                         }}
                                     >
-                                        {formatNote(note)}
+                                        <Box component="span" sx={NOTE_DISPLAY_TEXT_SX}>{formatNote(note)}</Box>
                                     </Typography>
                                 )}
                             </Box>
@@ -270,9 +289,8 @@ export function ChordPiano({
                                     borderRadius: 1,
                                     border: "1px solid",
                                     borderColor: theme.palette.divider,
-                                    cursor: "pointer",
                                     transition: "background-color 0.2s",
-                                    pointerEvents: "auto",
+                                    pointerEvents: "none",
                                     zIndex: 10,
                                     display: "flex",
                                     alignItems: "flex-end",
@@ -291,7 +309,7 @@ export function ChordPiano({
                                             fontWeight: isInChord ? 700 : 500,
                                         }}
                                     >
-                                        {formatNote(note)}
+                                        <Box component="span" sx={NOTE_DISPLAY_TEXT_SX}>{formatNote(note)}</Box>
                                     </Typography>
                                 )}
                             </Box>

@@ -1,8 +1,9 @@
 import * as React from "react";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { Box, IconButton, useTheme } from "@mui/material";
-import { formatNoteUnicode, noteFromPitchClass, type Note, type PitchClass, type Scale } from "musiclib";
+import { noteFromPitchClass, type Note, type PitchClass, type Scale } from "musiclib";
 import { normalizeInstrumentName, playScale } from "../../audio/soundfont.ts";
+import { NOTE_DISPLAY_FONT_FAMILY, useNoteFormatter } from "../../utils/noteDisplay.ts";
 import { useInstrument } from "../../utils/preferences.ts";
 
 type NoteWheelProps = {
@@ -43,13 +44,10 @@ function ringSlicePath(outerRadius: number, innerRadius: number, startAngle: num
     ].join(" ");
 }
 
-function noteLabel(note: Note) {
-    return formatNoteUnicode({ letter: note.letter, alter: note.alter });
-}
-
 export function NoteWheel({ selectedScale, size = 480 }: NoteWheelProps) {
     const theme = useTheme();
     const [instrument] = useInstrument();
+    const { formatNote } = useNoteFormatter();
     const [activePitch, setActivePitch] = React.useState<number | null>(null);
     const selectedInstrument = normalizeInstrumentName(instrument);
     const sliceSpan = 360 / CHROMATIC_NOTES.length;
@@ -70,7 +68,7 @@ export function NoteWheel({ selectedScale, size = 480 }: NoteWheelProps) {
                     viewBox="0 0 100 100"
                     width="100%"
                     role="img"
-                    aria-label={`${noteLabel(selectedScale.tonic)} ${selectedScale.type.name} note wheel`}
+                    aria-label={`${formatNote(selectedScale.tonic)} ${selectedScale.type.name} note wheel`}
                     style={{ userSelect: "none", WebkitUserSelect: "none" }}
                 >
                     {CHROMATIC_NOTES.map((chromaticNote, index) => {
@@ -102,9 +100,9 @@ export function NoteWheel({ selectedScale, size = 480 }: NoteWheelProps) {
                                         fontWeight="700"
                                         textAnchor="middle"
                                         dominantBaseline="middle"
-                                        style={{ letterSpacing: "0.02em", userSelect: "none", WebkitUserSelect: "none" }}
+                                        style={{ letterSpacing: "0.02em", userSelect: "none", WebkitUserSelect: "none", fontFamily: NOTE_DISPLAY_FONT_FAMILY }}
                                     >
-                                        {noteLabel(scaleNote)}
+                                        {formatNote(scaleNote)}
                                     </text>
                                 ) : null}
                             </g>
@@ -113,7 +111,7 @@ export function NoteWheel({ selectedScale, size = 480 }: NoteWheelProps) {
                 </svg>
                 <IconButton
                     onClick={handlePlayScale}
-                    aria-label={`Play ${noteLabel(selectedScale.tonic)} ${selectedScale.type.name} scale`}
+                    aria-label={`Play ${formatNote(selectedScale.tonic)} ${selectedScale.type.name} scale`}
                     sx={{
                         position: "absolute",
                         inset: 0,

@@ -33,3 +33,7 @@ export function getChordTypesByFamily(family: string | ChordFamily): readonly Re
 export function getAllChordTypes(): readonly Readonly<ChordType>[] {
     return ChordTypes
 }
+
+export function getAllChordFamilies(): readonly ChordFamily[] {
+    return Object.keys(chordTypesByFamily) as ChordFamily[];
+}

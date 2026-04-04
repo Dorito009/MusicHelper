@@ -6,10 +6,20 @@ const PREFER_SIMPLE_CHORD_LABELS_KEY = "music-helper:prefer-simple-chord-labels"
 const CHORD_VISIBILITY_KEY = "music-helper:chord-visibility";
 const SOUND_MUTED_KEY = "music-helper:sound-muted";
 const INSTRUMENT_KEY = "music-helper:instrument";
+const ACCIDENTAL_DISPLAY_KEY = "music-helper:accidental-display";
 
 export type ChordVisibilityKey = "sus2" | "triads" | "sus4" | "sevenths" | "fifths" | "sixths" | "add9";
 
 export type ChordVisibilitySettings = Record<ChordVisibilityKey, boolean>;
+
+export type AccidentalDisplay = {
+    sharp: "ascii" | "unicode";
+    flat: "ascii" | "unicode";
+    doubleSharp: "ascii" | "unicode" | "repeated-unicode";
+    doubleFlat: "ascii" | "unicode" | "repeated-unicode";
+};
+
+type AccidentalDisplayValue = AccidentalDisplay[keyof AccidentalDisplay];
 
 const DEFAULT_CHORD_VISIBILITY_SETTINGS: ChordVisibilitySettings = {
     sus2: true,
@@ -20,6 +30,39 @@ const DEFAULT_CHORD_VISIBILITY_SETTINGS: ChordVisibilitySettings = {
     sixths: false,
     add9: false,
 };
+
+export const DEFAULT_ACCIDENTAL_DISPLAY: AccidentalDisplay = {
+    sharp: "unicode",
+    flat: "unicode",
+    doubleSharp: "unicode",
+    doubleFlat: "unicode",
+};
+
+function isMobileLikeDevice() {
+    if (typeof window === "undefined") {
+        return false;
+    }
+
+    const isMobileUserAgent = /Android|iPhone|iPad|iPod|Mobile/i.test(window.navigator.userAgent);
+    const isCoarsePointer = typeof window.matchMedia === "function"
+        ? window.matchMedia("(pointer: coarse)").matches
+        : false;
+
+    return isMobileUserAgent || isCoarsePointer;
+}
+
+function getDefaultAccidentalDisplay(): AccidentalDisplay {
+    if (isMobileLikeDevice()) {
+        return {
+            sharp: "unicode",
+            flat: "unicode",
+            doubleSharp: "repeated-unicode",
+            doubleFlat: "unicode",
+        };
+    }
+
+    return DEFAULT_ACCIDENTAL_DISPLAY;
+}
 
 function readStringSetting(key: string, defaultValue: string): string {
     if (typeof window === "undefined") {
@@ -227,6 +270,60 @@ export function useChordVisibilityPreferences() {
     return [value, updateValue, updateSingleValue] as const;
 }
 
+export function useAccidentalDisplayPreference() {
+    const [value, setValue] = React.useState(() => readJsonSetting(ACCIDENTAL_DISPLAY_KEY, getDefaultAccidentalDisplay()));
+
+    React.useEffect(() => {
+        const handleStorage = (event: StorageEvent) => {
+            if (event.key !== ACCIDENTAL_DISPLAY_KEY) {
+                return;
+            }
+
+            setValue(event.newValue === null
+                ? getDefaultAccidentalDisplay()
+                : readJsonSetting(ACCIDENTAL_DISPLAY_KEY, getDefaultAccidentalDisplay()));
+        };
+
+        const handleSettingsChange = (event: Event) => {
+            const customEvent = event as CustomEvent<{ key?: string; value?: AccidentalDisplay }>;
+
+            if (customEvent.detail?.key === ACCIDENTAL_DISPLAY_KEY && customEvent.detail.value) {
+                setValue({
+                    ...getDefaultAccidentalDisplay(),
+                    ...customEvent.detail.value,
+                });
+            }
+        };
+
+        window.addEventListener("storage", handleStorage);
+        window.addEventListener(SETTINGS_EVENT, handleSettingsChange as EventListener);
+
+        return () => {
+            window.removeEventListener("storage", handleStorage);
+            window.removeEventListener(SETTINGS_EVENT, handleSettingsChange as EventListener);
+        };
+    }, []);
+
+    const updateValue = React.useCallback((nextValue: AccidentalDisplay) => {
+        setValue(nextValue);
+        writeJsonSetting(ACCIDENTAL_DISPLAY_KEY, nextValue);
+    }, []);
+
+    const updateSingleValue = React.useCallback((key: keyof AccidentalDisplay, nextValue: AccidentalDisplayValue) => {
+        setValue((previousValue) => {
+            const updatedValue = {
+                ...previousValue,
+                [key]: nextValue,
+            };
+
+            writeJsonSetting(ACCIDENTAL_DISPLAY_KEY, updatedValue);
+            return updatedValue;
+        });
+    }, []);
+
+    return [value, updateValue, updateSingleValue] as const;
+}
+
 export function useSoundMuted() {
     return useBooleanPreference(SOUND_MUTED_KEY, false);
 }
@@ -234,4 +331,3 @@ export function useSoundMuted() {
 export function useInstrument() {
     return useStringPreference(INSTRUMENT_KEY, "acoustic_grand_piano");
 }
-

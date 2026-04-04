@@ -11,12 +11,14 @@ import {
 import { ScaleChordTable } from "../components/scales/ScaleChordTable.tsx";
 import { ScaleSettingsDrawer } from "../components/scales/ScaleSettingsDrawer.tsx";
 import type {Note, ScaleType, Chord} from "musiclib"
-import {naturalNotes, getAllScaleTypes, constructScale, formatNote, formatNoteASCII, getScaleTypeById, noteFromString, simplifyScale} from "musiclib"
+import {naturalNotes, getAllScaleTypes, constructScale, formatNoteASCII, getScaleTypeById, noteFromString} from "musiclib"
 import {NoteWheel} from "../components/scales/NoteWheel.tsx";
 import {CircleOfFifths} from "../components/scales/CircleOfFifths/CircleOfFifths.tsx";
 import { useInstrument, usePreferSimpleSpellings, useStringPreference } from "../utils/preferences.ts";
+import { NOTE_DISPLAY_TEXT_SX, useNoteFormatter } from "../utils/noteDisplay.ts";
 import {ChordPiano} from "../components/scales/ChordPiano.tsx";
 import { normalizeInstrumentName, playChord } from "../audio/soundfont.ts";
+import {getDisplayChord, getDisplayScale} from "../utils/chordDisplay.ts";
 
 
 const SELECTED_NOTE_KEY = "music-helper:selected-note";
@@ -51,6 +53,7 @@ function ScalePage() {
     const [selectedChord, setSelectedChord] = React.useState<Chord | undefined>(undefined);
     const [preferSimpleSpellings] = usePreferSimpleSpellings();
     const [instrument] = useInstrument();
+    const { formatNote } = useNoteFormatter();
     const selectedInstrument = React.useMemo(() => normalizeInstrumentName(instrument), [instrument]);
 
     useEffect(() => {
@@ -68,14 +71,14 @@ function ScalePage() {
         [selectedNote, selectedScaleType]
     )
 
-    const simplifiedScale = React.useMemo(
-        () => simplifyScale(harmonicScale),
-        [harmonicScale]
+    const displayScale = React.useMemo(
+        () => getDisplayScale(harmonicScale, preferSimpleSpellings),
+        [harmonicScale, preferSimpleSpellings]
     )
 
-    const displayScale = React.useMemo(
-        () => (preferSimpleSpellings ? simplifiedScale : harmonicScale),
-        [harmonicScale, preferSimpleSpellings, simplifiedScale]
+    const displaySelectedChord = React.useMemo(
+        () => selectedChord ? getDisplayChord(selectedChord, preferSimpleSpellings) : undefined,
+        [preferSimpleSpellings, selectedChord]
     )
 
 
@@ -135,6 +138,7 @@ function ScalePage() {
                     </Typography>
                     <Typography
                         sx={{
+                            ...NOTE_DISPLAY_TEXT_SX,
                             mt: 0.5,
                             fontSize: { xs: "1.8rem", md: "2.2rem" },
                             fontWeight: 700,
@@ -169,7 +173,7 @@ function ScalePage() {
                         <NoteWheel selectedScale={displayScale} size={420} />
                         <CircleOfFifths selectedScale={displayScale} size={420} showChords />
                     </Box>
-                    <ChordPiano scale={displayScale} selectedChord={selectedChord} showKeyNames={true}/>
+                    <ChordPiano scale={displayScale} selectedChord={displaySelectedChord} showKeyNames={true}/>
                     <ScaleChordTable scale={harmonicScale} onSelectChord={setSelectedChord} selectedChord={selectedChord} />
                 </Box>
             </Stack>

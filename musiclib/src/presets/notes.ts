@@ -10,6 +10,21 @@ const NOTE_STRING_ROWS: string[][] = [
     ["Bb", "B", ""],
 ];
 
+const NOTE_STRING_PAIRS: string[][] = [
+    ["C"],
+    ["C#", "Db"],
+    ["D"],
+    ["D#", "Eb"],
+    ["E"],
+    ["F"],
+    ["F#", "Gb"],
+    ["G"],
+    ["G#", "Ab"],
+    ["A"],
+    ["A#", "Bb"],
+    ["B"]
+]
+
 const NATURAL_PITCHES: ReadonlyArray<readonly [NoteLetter, PitchClass]> = [
     ["C", 0],
     ["D", 2],
@@ -34,6 +49,17 @@ export const noteRows: ReadonlyArray<ReadonlyArray<Readonly<Note> | null>> = Obj
             row.map((value) => {
                 const note = parseNote(value);
                 return note ? Object.freeze(note) : null;
+            })
+        )
+    )
+);
+
+export const notePairs: ReadonlyArray<ReadonlyArray<Readonly<Note>>> = Object.freeze(
+    NOTE_STRING_PAIRS.map((row) =>
+        Object.freeze(
+            row.map((value) => {
+                const note = parseNote(value)!;
+                return Object.freeze(note);
             })
         )
     )

@@ -1,6 +1,8 @@
 import {createRootRouteWithContext, Outlet, redirect, useRouterState} from "@tanstack/react-router";
+import { useEffect } from "react";
 import {z} from 'zod';
 import NavHeader from "../components/NavHeader.tsx";
+import { warmupAudio } from "../audio/soundfont.ts";
 
 
 const rootSearchSchema = z.object({
@@ -32,6 +34,25 @@ function RootComponent() {
     const showNav = state.matches.some((match) => {
         return match.staticData?.showNav;
     });
+
+    useEffect(() => {
+        const handleWarmup = () => {
+            void warmupAudio();
+            window.removeEventListener("pointerdown", handleWarmup);
+            window.removeEventListener("keydown", handleWarmup);
+            window.removeEventListener("touchstart", handleWarmup);
+        };
+
+        window.addEventListener("pointerdown", handleWarmup, { once: true });
+        window.addEventListener("keydown", handleWarmup, { once: true });
+        window.addEventListener("touchstart", handleWarmup, { once: true });
+
+        return () => {
+            window.removeEventListener("pointerdown", handleWarmup);
+            window.removeEventListener("keydown", handleWarmup);
+            window.removeEventListener("touchstart", handleWarmup);
+        };
+    }, []);
 
     return (
         <div>

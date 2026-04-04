@@ -1,7 +1,9 @@
 import * as React from "react";
 import { alpha, Box, Stack, Typography, useTheme } from "@mui/material";
-import { formatNoteASCII, simplifyScale, type Scale , type Chord} from "musiclib";
-import { type ChordVisibilityKey, useChordVisibilityPreferences, usePreferSimpleChordLabels } from "../../utils/preferences.ts";
+import { type Scale , type Chord} from "musiclib";
+import { type ChordVisibilityKey, useChordVisibilityPreferences, usePreferSimpleChordLabels, usePreferSimpleSpellings } from "../../utils/preferences.ts";
+import { NOTE_DISPLAY_TEXT_SX, useNoteFormatter } from "../../utils/noteDisplay.ts";
+import {getDisplayScale} from "../../utils/chordDisplay.ts";
 
 type ScaleChordTableProps = {
     scale: Scale;
@@ -49,14 +51,19 @@ const CHORD_SECTIONS: ChordSection[] = [
 
 export function ScaleChordTable({ scale, selectedChord, onSelectChord}: ScaleChordTableProps) {
     const theme = useTheme();
+    const { formatNote, formatText } = useNoteFormatter();
     const [preferSimpleChordLabels] = usePreferSimpleChordLabels();
+    const [preferSimpleSpellings] = usePreferSimpleSpellings();
     const [chordVisibility] = useChordVisibilityPreferences();
 
-    const simplifiedScale = React.useMemo(() => simplifyScale(scale), [scale]);
+    const noteDisplayScale = React.useMemo(
+        () => getDisplayScale(scale, preferSimpleSpellings),
+        [preferSimpleSpellings, scale]
+    );
 
     const chordLabelScale = React.useMemo(
-        () => (preferSimpleChordLabels ? simplifiedScale : scale),
-        [preferSimpleChordLabels, scale, simplifiedScale]
+        () => getDisplayScale(scale, preferSimpleChordLabels),
+        [preferSimpleChordLabels, scale]
     );
 
     const visibleChordSections = React.useMemo(
@@ -113,7 +120,7 @@ export function ScaleChordTable({ scale, selectedChord, onSelectChord}: ScaleCho
                         Root Notes
                     </Typography>
                 </Box>
-                {chordLabelScale.degrees.map((degree, index) => (
+                {noteDisplayScale.degrees.map((degree, index) => (
                     <Box
                         key={`root-${degree.degree}-${index}`}
                         sx={{
@@ -123,13 +130,13 @@ export function ScaleChordTable({ scale, selectedChord, onSelectChord}: ScaleCho
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            borderRight: index < chordLabelScale.degrees.length - 1 ? "1px solid" : "none",
+                            borderRight: index < noteDisplayScale.degrees.length - 1 ? "1px solid" : "none",
                             borderColor: alpha(theme.palette.divider, 0.8),
                             bgcolor: alpha(theme.palette.secondary.main, degree.degree === 1 ? 0.14 : 0.06),
                         }}
                     >
-                        <Typography sx={{ fontWeight: 700, fontSize: { xs: "0.92rem", md: "1rem" }, userSelect: "none" }}>
-                            {formatNoteASCII(degree.note)}
+                        <Typography sx={{ ...NOTE_DISPLAY_TEXT_SX, fontWeight: 700, fontSize: { xs: "0.92rem", md: "1rem" }, userSelect: "none" }}>
+                            {formatNote(degree.note)}
                         </Typography>
                     </Box>
                 ))}
@@ -189,16 +196,17 @@ export function ScaleChordTable({ scale, selectedChord, onSelectChord}: ScaleCho
                                 }}
                             >
                                 <Typography
-                                    sx={{
-                                        fontWeight: chord ? 700 : 500,
-                                        fontSize: {xs: "0.92rem", md: "1rem"},
-                                        color: chord ? "text.primary" : "text.disabled",
+                                     sx={{
+                                         ...NOTE_DISPLAY_TEXT_SX,
+                                         fontWeight: chord ? 700 : 500,
+                                         fontSize: {xs: "0.92rem", md: "1rem"},
+                                         color: chord ? "text.primary" : "text.disabled",
                                         userSelect: "none",
                                     }}
                                 >
-                                    {chord?.symbol ?? ""}
-                                </Typography>
-                            </Box>
+                                     {chord ? formatText(chord.symbol) : ""}
+                                 </Typography>
+                             </Box>
                         })}
                     </Box>
                 ))}

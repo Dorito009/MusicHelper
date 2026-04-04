@@ -1,6 +1,7 @@
 import { Box, useTheme } from "@mui/material";
-import { formatNoteUnicode, noteFromPitchClass, type Note, type PitchClass, type Scale, type ScaleDegree } from "musiclib";
+import { noteFromPitchClass, type PitchClass, type Scale, type ScaleDegree } from "musiclib";
 import { CircleOfFifthsQualityOverlay } from "./CircleOfFifthsQualityOverlay.tsx";
+import { NOTE_DISPLAY_FONT_FAMILY, useNoteFormatter } from "../../../utils/noteDisplay.ts";
 
 type CircleOfFifthsProps = {
     selectedScale: Scale;
@@ -40,10 +41,6 @@ function ringSlicePath(outerRadius: number, innerRadius: number, startAngle: num
     ].join(" ");
 }
 
-function noteLabel(note: Note) {
-    return formatNoteUnicode({ letter: note.letter, alter: note.alter });
-}
-
 function getSectorStartAngle(index: number, sliceSpan: number) {
     return START_ANGLE + index * sliceSpan + GAP_DEGREES / 2;
 }
@@ -75,6 +72,7 @@ function formatRomanNumeral(scaleDegree: ScaleDegree | undefined): string {
 
 export function CircleOfFifths({ selectedScale, size = 420, showChords = false }: CircleOfFifthsProps) {
     const theme = useTheme();
+    const { formatNote } = useNoteFormatter();
     const sliceSpan = 360 / FIFTHS_ORDER.length;
     const notesByPitch = new Map(selectedScale.notes.map((note) => [note.pitch, note]));
     const scaleDegreesByPitch = new Map(selectedScale.degrees.map((degree) => [degree.note.pitch, degree]));
@@ -97,7 +95,7 @@ export function CircleOfFifths({ selectedScale, size = 420, showChords = false }
                 viewBox="0 0 100 100"
                 width="100%"
                 role="img"
-                aria-label={`${noteLabel(selectedScale.tonic)} ${selectedScale.type.name} circle of fifths`}
+                aria-label={`${formatNote(selectedScale.tonic)} ${selectedScale.type.name} circle of fifths`}
                 style={{ userSelect: "none", WebkitUserSelect: "none" }}
             >
                 {FIFTHS_ORDER.map((pitch, index) => {
@@ -139,9 +137,9 @@ export function CircleOfFifths({ selectedScale, size = 420, showChords = false }
                                     fontWeight="700"
                                     textAnchor="middle"
                                     dominantBaseline="middle"
-                                    style={{ userSelect: "none", WebkitUserSelect: "none" }}
+                                    style={{ userSelect: "none", WebkitUserSelect: "none", fontFamily: NOTE_DISPLAY_FONT_FAMILY }}
                                 >
-                                    {noteLabel(displayNote)}
+                                    {formatNote(displayNote)}
                                 </text>
                             ) : null}
 

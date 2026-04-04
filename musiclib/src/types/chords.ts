@@ -65,6 +65,17 @@ function detectSeventhType(rootPitch: number, thirdPitch: number, fifthPitch: nu
 
     return undefined;
 }
+
+function buildChordSymbol(root: Note, type: ChordType, bass?: Note): string {
+    const baseSymbol = `${formatNoteASCII(root)}${type.shortName}`;
+
+    if (!bass || bass.pitch === root.pitch) {
+        return baseSymbol;
+    }
+
+    return `${baseSymbol}/${formatNoteASCII(bass)}`;
+}
+
 function buildStackedChord(root: Note, type: ChordType, notes: Note[]): Chord {
     return {
         root,
@@ -75,7 +86,7 @@ function buildStackedChord(root: Note, type: ChordType, notes: Note[]): Chord {
             interval,
             note: notes[index]
         })),
-        symbol: `${formatNoteASCII(root)}${type.shortName}`
+        symbol: buildChordSymbol(root, type)
     };
 }
 
@@ -107,17 +118,18 @@ export function simplifyChord(
 ): Chord {
     const root = simplifyNote(chord.root, preference);
     const notes = chord.notes.map((note) => simplifyNote(note, preference));
+    const bass = chord.bass ? simplifyNote(chord.bass, preference) : undefined;
 
     return {
         ...chord,
         root,
         notes,
-        tones: chord.tones.map((tone, index) => ({
+        tones: chord.tones.map((tone) => ({
             ...tone,
-            note: notes[index] ?? simplifyNote(tone.note, preference),
+            note: simplifyNote(tone.note, preference),
         })),
-        bass: chord.bass ? simplifyNote(chord.bass, preference) : undefined,
-        symbol: `${formatNoteASCII(root)}${chord.type.shortName}`,
+        bass,
+        symbol: buildChordSymbol(root, chord.type, bass),
     };
 }
 export function buildScaleTriads(scale: Scale): Chord[] {
@@ -185,6 +197,21 @@ function buildChordToneNote(root: Note, interval: number): Note {
     };
 }
 
+function raiseNoteByOctaves(note: Note, octaves: number): Note {
+    if (octaves === 0) {
+        return note;
+    }
+
+    const octave = note.octave === undefined ? undefined : note.octave + octaves;
+    const midi = note.midi === undefined ? getMidi({ ...note, octave }) : note.midi + octaves * 12;
+
+    return {
+        ...note,
+        octave,
+        midi,
+    };
+}
+
 export function buildChord(root: Note, type: ChordType): Chord {
     const tones = type.intervals.map((interval) => {
         const note = buildChordToneNote(root, interval);
@@ -201,6 +228,37 @@ export function buildChord(root: Note, type: ChordType): Chord {
         type,
         tones,
         notes: tones.map((tone) => tone.note),
-        symbol: `${formatNoteASCII(root)}${type.shortName}`,
+        symbol: buildChordSymbol(root, type),
+    };
+}
+
+export function invertChord(chord: Chord, inversion: number = 1): Chord {
+    if (chord.notes.length === 0) {
+        return chord;
+    }
+
+    const normalizedInversion = mod(inversion, chord.notes.length);
+
+    if (normalizedInversion === 0) {
+        return {
+            ...chord,
+            inversion: 0,
+            bass: chord.root,
+            symbol: buildChordSymbol(chord.root, chord.type, chord.root),
+        };
+    }
+
+    const notes = [
+        ...chord.notes.slice(normalizedInversion),
+        ...chord.notes.slice(0, normalizedInversion).map((note) => raiseNoteByOctaves(note, 1)),
+    ];
+    const bass = notes[0];
+
+    return {
+        ...chord,
+        notes,
+        inversion: normalizedInversion,
+        bass,
+        symbol: buildChordSymbol(chord.root, chord.type, bass),
     };
 }

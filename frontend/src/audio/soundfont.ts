@@ -243,6 +243,14 @@ export async function loadInstrument(instrumentName: InstrumentName = DEFAULT_IN
     return currentInstrument;
 }
 
+export async function warmupAudio(instrumentName: InstrumentName = DEFAULT_INSTRUMENT_NAME) {
+    try {
+        await loadInstrument(instrumentName);
+    } catch {
+        return;
+    }
+}
+
 export function constructChordOctaves(notes: Array<{ pitch: number }>, lowestOctave: number = 3): number[] {
     if (!notes || notes.length === 0) return [];
     if (notes.length === 1) return [notes[0].pitch + lowestOctave * 12];
