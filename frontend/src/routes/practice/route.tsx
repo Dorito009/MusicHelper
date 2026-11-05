@@ -3,7 +3,9 @@ import AppHeader, {type AppHeaderNavItem} from "../../components/AppHeader.tsx";
 
 // Theory pages are kept out of the way here: one collapsed "Theory" menu.
 const NAV_ITEMS: AppHeaderNavItem[] = [
-    { label: "Practice", to: "/practice" },
+    { label: "Library", to: "/practice" },
+    { label: "Sight-reading", to: "/practice/sight-reading" },
+    { label: "Settings", to: "/practice/settings" },
     {
         label: "Theory",
         items: [

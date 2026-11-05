@@ -13,8 +13,11 @@ import { Route as PracticeRouteRouteImport } from './routes/practice/route'
 import { Route as TheoryRouteRouteImport } from './routes/_theory/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PracticeIndexRouteImport } from './routes/practice/index'
+import { Route as PracticeSightReadingRouteImport } from './routes/practice/sight-reading'
+import { Route as PracticeSettingsRouteImport } from './routes/practice/settings'
 import { Route as TheoryScalesRouteImport } from './routes/_theory/scales'
 import { Route as TheoryChordsRouteImport } from './routes/_theory/chords'
+import { Route as PracticePlayScoreIdRouteImport } from './routes/practice/play/$scoreId'
 
 const PracticeRouteRoute = PracticeRouteRouteImport.update({
   id: '/practice',
@@ -35,6 +38,16 @@ const PracticeIndexRoute = PracticeIndexRouteImport.update({
   path: '/',
   getParentRoute: () => PracticeRouteRoute,
 } as any)
+const PracticeSightReadingRoute = PracticeSightReadingRouteImport.update({
+  id: '/sight-reading',
+  path: '/sight-reading',
+  getParentRoute: () => PracticeRouteRoute,
+} as any)
+const PracticeSettingsRoute = PracticeSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => PracticeRouteRoute,
+} as any)
 const TheoryScalesRoute = TheoryScalesRouteImport.update({
   id: '/scales',
   path: '/scales',
@@ -45,19 +58,30 @@ const TheoryChordsRoute = TheoryChordsRouteImport.update({
   path: '/chords',
   getParentRoute: () => TheoryRouteRoute,
 } as any)
+const PracticePlayScoreIdRoute = PracticePlayScoreIdRouteImport.update({
+  id: '/play/$scoreId',
+  path: '/play/$scoreId',
+  getParentRoute: () => PracticeRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/practice': typeof PracticeRouteRouteWithChildren
   '/chords': typeof TheoryChordsRoute
   '/scales': typeof TheoryScalesRoute
+  '/practice/settings': typeof PracticeSettingsRoute
+  '/practice/sight-reading': typeof PracticeSightReadingRoute
   '/practice/': typeof PracticeIndexRoute
+  '/practice/play/$scoreId': typeof PracticePlayScoreIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/chords': typeof TheoryChordsRoute
   '/scales': typeof TheoryScalesRoute
+  '/practice/settings': typeof PracticeSettingsRoute
+  '/practice/sight-reading': typeof PracticeSightReadingRoute
   '/practice': typeof PracticeIndexRoute
+  '/practice/play/$scoreId': typeof PracticePlayScoreIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -66,13 +90,31 @@ export interface FileRoutesById {
   '/practice': typeof PracticeRouteRouteWithChildren
   '/_theory/chords': typeof TheoryChordsRoute
   '/_theory/scales': typeof TheoryScalesRoute
+  '/practice/settings': typeof PracticeSettingsRoute
+  '/practice/sight-reading': typeof PracticeSightReadingRoute
   '/practice/': typeof PracticeIndexRoute
+  '/practice/play/$scoreId': typeof PracticePlayScoreIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/practice' | '/chords' | '/scales' | '/practice/'
+  fullPaths:
+    | '/'
+    | '/practice'
+    | '/chords'
+    | '/scales'
+    | '/practice/settings'
+    | '/practice/sight-reading'
+    | '/practice/'
+    | '/practice/play/$scoreId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/chords' | '/scales' | '/practice'
+  to:
+    | '/'
+    | '/chords'
+    | '/scales'
+    | '/practice/settings'
+    | '/practice/sight-reading'
+    | '/practice'
+    | '/practice/play/$scoreId'
   id:
     | '__root__'
     | '/'
@@ -80,7 +122,10 @@ export interface FileRouteTypes {
     | '/practice'
     | '/_theory/chords'
     | '/_theory/scales'
+    | '/practice/settings'
+    | '/practice/sight-reading'
     | '/practice/'
+    | '/practice/play/$scoreId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +164,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PracticeIndexRouteImport
       parentRoute: typeof PracticeRouteRoute
     }
+    '/practice/sight-reading': {
+      id: '/practice/sight-reading'
+      path: '/sight-reading'
+      fullPath: '/practice/sight-reading'
+      preLoaderRoute: typeof PracticeSightReadingRouteImport
+      parentRoute: typeof PracticeRouteRoute
+    }
+    '/practice/settings': {
+      id: '/practice/settings'
+      path: '/settings'
+      fullPath: '/practice/settings'
+      preLoaderRoute: typeof PracticeSettingsRouteImport
+      parentRoute: typeof PracticeRouteRoute
+    }
     '/_theory/scales': {
       id: '/_theory/scales'
       path: '/scales'
@@ -132,6 +191,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/chords'
       preLoaderRoute: typeof TheoryChordsRouteImport
       parentRoute: typeof TheoryRouteRoute
+    }
+    '/practice/play/$scoreId': {
+      id: '/practice/play/$scoreId'
+      path: '/play/$scoreId'
+      fullPath: '/practice/play/$scoreId'
+      preLoaderRoute: typeof PracticePlayScoreIdRouteImport
+      parentRoute: typeof PracticeRouteRoute
     }
   }
 }
@@ -151,11 +217,17 @@ const TheoryRouteRouteWithChildren = TheoryRouteRoute._addFileChildren(
 )
 
 interface PracticeRouteRouteChildren {
+  PracticeSettingsRoute: typeof PracticeSettingsRoute
+  PracticeSightReadingRoute: typeof PracticeSightReadingRoute
   PracticeIndexRoute: typeof PracticeIndexRoute
+  PracticePlayScoreIdRoute: typeof PracticePlayScoreIdRoute
 }
 
 const PracticeRouteRouteChildren: PracticeRouteRouteChildren = {
+  PracticeSettingsRoute: PracticeSettingsRoute,
+  PracticeSightReadingRoute: PracticeSightReadingRoute,
   PracticeIndexRoute: PracticeIndexRoute,
+  PracticePlayScoreIdRoute: PracticePlayScoreIdRoute,
 }
 
 const PracticeRouteRouteWithChildren = PracticeRouteRoute._addFileChildren(
