@@ -1,5 +1,5 @@
 import {createFileRoute} from "@tanstack/react-router";
-import {Container, Typography} from "@mui/material";
+import {SettingsPage} from "../../features/practice/settings/SettingsPage.tsx";
 
 export const Route = createFileRoute("/practice/settings")({
     component: SettingsPage,
@@ -7,8 +7,3 @@ export const Route = createFileRoute("/practice/settings")({
         meta: [{ title: 'Music Helper | Practice settings' }],
     }),
 })
-
-// eslint-disable-next-line react-refresh/only-export-components
-function SettingsPage() {
-    return <Container sx={{py: 3}}><Typography>Practice settings: coming soon.</Typography></Container>
-}
