@@ -1,7 +1,14 @@
 import {createFileRoute, Outlet} from "@tanstack/react-router";
 import {useEffect} from "react";
-import NavHeader from "../../components/NavHeader.tsx";
+import AppHeader, {type AppHeaderNavItem} from "../../components/AppHeader.tsx";
 import {warmupAudio} from "../../features/theory/audio/soundfont.ts";
+import {TheoryHeaderActions} from "../../features/theory/TheoryHeaderActions.tsx";
+
+const NAV_ITEMS: AppHeaderNavItem[] = [
+    { label: "Scales", to: "/scales" },
+    { label: "Chords", to: "/chords" },
+    { label: "Practice", to: "/practice" },
+]
 
 // Pathless layout for the theory pages (/scales, /chords).
 export const Route = createFileRoute("/_theory")({
@@ -32,7 +39,7 @@ function TheoryLayout() {
 
     return (
         <>
-            <NavHeader/>
+            <AppHeader homeTo="/scales" navItems={NAV_ITEMS} actions={<TheoryHeaderActions/>}/>
             <Outlet/>
         </>
     )
