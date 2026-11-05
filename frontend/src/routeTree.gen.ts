@@ -9,68 +9,163 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ScalesRouteImport } from './routes/scales'
-import { Route as ChordsRouteImport } from './routes/chords'
+import { Route as PracticeRouteRouteImport } from './routes/practice/route'
+import { Route as TheoryRouteRouteImport } from './routes/_theory/route'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as PracticeIndexRouteImport } from './routes/practice/index'
+import { Route as TheoryScalesRouteImport } from './routes/_theory/scales'
+import { Route as TheoryChordsRouteImport } from './routes/_theory/chords'
 
-const ScalesRoute = ScalesRouteImport.update({
-  id: '/scales',
-  path: '/scales',
+const PracticeRouteRoute = PracticeRouteRouteImport.update({
+  id: '/practice',
+  path: '/practice',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ChordsRoute = ChordsRouteImport.update({
+const TheoryRouteRoute = TheoryRouteRouteImport.update({
+  id: '/_theory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PracticeIndexRoute = PracticeIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PracticeRouteRoute,
+} as any)
+const TheoryScalesRoute = TheoryScalesRouteImport.update({
+  id: '/scales',
+  path: '/scales',
+  getParentRoute: () => TheoryRouteRoute,
+} as any)
+const TheoryChordsRoute = TheoryChordsRouteImport.update({
   id: '/chords',
   path: '/chords',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => TheoryRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/chords': typeof ChordsRoute
-  '/scales': typeof ScalesRoute
+  '/': typeof IndexRoute
+  '/practice': typeof PracticeRouteRouteWithChildren
+  '/chords': typeof TheoryChordsRoute
+  '/scales': typeof TheoryScalesRoute
+  '/practice/': typeof PracticeIndexRoute
 }
 export interface FileRoutesByTo {
-  '/chords': typeof ChordsRoute
-  '/scales': typeof ScalesRoute
+  '/': typeof IndexRoute
+  '/chords': typeof TheoryChordsRoute
+  '/scales': typeof TheoryScalesRoute
+  '/practice': typeof PracticeIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/chords': typeof ChordsRoute
-  '/scales': typeof ScalesRoute
+  '/': typeof IndexRoute
+  '/_theory': typeof TheoryRouteRouteWithChildren
+  '/practice': typeof PracticeRouteRouteWithChildren
+  '/_theory/chords': typeof TheoryChordsRoute
+  '/_theory/scales': typeof TheoryScalesRoute
+  '/practice/': typeof PracticeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/chords' | '/scales'
+  fullPaths: '/' | '/practice' | '/chords' | '/scales' | '/practice/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/chords' | '/scales'
-  id: '__root__' | '/chords' | '/scales'
+  to: '/' | '/chords' | '/scales' | '/practice'
+  id:
+    | '__root__'
+    | '/'
+    | '/_theory'
+    | '/practice'
+    | '/_theory/chords'
+    | '/_theory/scales'
+    | '/practice/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  ChordsRoute: typeof ChordsRoute
-  ScalesRoute: typeof ScalesRoute
+  IndexRoute: typeof IndexRoute
+  TheoryRouteRoute: typeof TheoryRouteRouteWithChildren
+  PracticeRouteRoute: typeof PracticeRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/scales': {
-      id: '/scales'
-      path: '/scales'
-      fullPath: '/scales'
-      preLoaderRoute: typeof ScalesRouteImport
+    '/practice': {
+      id: '/practice'
+      path: '/practice'
+      fullPath: '/practice'
+      preLoaderRoute: typeof PracticeRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/chords': {
-      id: '/chords'
+    '/_theory': {
+      id: '/_theory'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof TheoryRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/practice/': {
+      id: '/practice/'
+      path: '/'
+      fullPath: '/practice/'
+      preLoaderRoute: typeof PracticeIndexRouteImport
+      parentRoute: typeof PracticeRouteRoute
+    }
+    '/_theory/scales': {
+      id: '/_theory/scales'
+      path: '/scales'
+      fullPath: '/scales'
+      preLoaderRoute: typeof TheoryScalesRouteImport
+      parentRoute: typeof TheoryRouteRoute
+    }
+    '/_theory/chords': {
+      id: '/_theory/chords'
       path: '/chords'
       fullPath: '/chords'
-      preLoaderRoute: typeof ChordsRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof TheoryChordsRouteImport
+      parentRoute: typeof TheoryRouteRoute
     }
   }
 }
 
+interface TheoryRouteRouteChildren {
+  TheoryChordsRoute: typeof TheoryChordsRoute
+  TheoryScalesRoute: typeof TheoryScalesRoute
+}
+
+const TheoryRouteRouteChildren: TheoryRouteRouteChildren = {
+  TheoryChordsRoute: TheoryChordsRoute,
+  TheoryScalesRoute: TheoryScalesRoute,
+}
+
+const TheoryRouteRouteWithChildren = TheoryRouteRoute._addFileChildren(
+  TheoryRouteRouteChildren,
+)
+
+interface PracticeRouteRouteChildren {
+  PracticeIndexRoute: typeof PracticeIndexRoute
+}
+
+const PracticeRouteRouteChildren: PracticeRouteRouteChildren = {
+  PracticeIndexRoute: PracticeIndexRoute,
+}
+
+const PracticeRouteRouteWithChildren = PracticeRouteRoute._addFileChildren(
+  PracticeRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  ChordsRoute: ChordsRoute,
-  ScalesRoute: ScalesRoute,
+  IndexRoute: IndexRoute,
+  TheoryRouteRoute: TheoryRouteRouteWithChildren,
+  PracticeRouteRoute: PracticeRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

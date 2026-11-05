@@ -21,19 +21,18 @@ import type {Chord} from "musiclib"
 import AddIcon from '@mui/icons-material/Add';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import ViewCarouselRoundedIcon from '@mui/icons-material/ViewCarouselRounded';
-import {normalizeInstrumentName, playChord} from "../features/theory/audio/soundfont.ts";
-import {ChordDialog} from "../features/theory/chords/ChordDialog.tsx";
-import {ChordCard} from "../features/theory/chords/ChordCard.tsx";
-import {ChordHelperDialog} from "../features/theory/chords/ChordHelperDialog.tsx";
-import {useSavedChords} from "../features/theory/utils/ChordPageUtils.ts";
-import {useInstrument} from "../features/theory/utils/preferences.ts";
+import {normalizeInstrumentName, playChord} from "../../features/theory/audio/soundfont.ts";
+import {ChordDialog} from "../../features/theory/chords/ChordDialog.tsx";
+import {ChordCard} from "../../features/theory/chords/ChordCard.tsx";
+import {ChordHelperDialog} from "../../features/theory/chords/ChordHelperDialog.tsx";
+import {useSavedChords} from "../../features/theory/utils/ChordPageUtils.ts";
+import {useInstrument} from "../../features/theory/utils/preferences.ts";
 
-export const Route = createFileRoute('/chords')({
+export const Route = createFileRoute('/_theory/chords')({
     component: ChordsPage,
-    staticData: {
-        title: "Music Helper | Chords",
-        showNav: true,
-    },
+    head: () => ({
+        meta: [{ title: 'Music Helper | Chords' }],
+    }),
 })
 
 const CHORD_SET_KEY = "music-helper:chord-set";
