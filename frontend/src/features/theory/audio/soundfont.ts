@@ -1,6 +1,6 @@
 import Soundfont from "soundfont-player";
 import type {Chord, Scale} from "musiclib"
-import type {InstrumentName} from "soundfont-player";
+import type {InstrumentName, Player} from "soundfont-player";
 
 export const DEFAULT_INSTRUMENT_NAME: InstrumentName = "acoustic_grand_piano";
 
@@ -209,7 +209,7 @@ export function normalizeInstrumentName(instrumentName: string): InstrumentName 
 }
 
 let audioContext: AudioContext | null = null;
-let currentInstrument: any = null;
+let currentInstrument: Player | null = null;
 let currentInstrumentName = "";
 let isMuted = false;
 

@@ -62,6 +62,8 @@ function ScalePage() {
     }, [selectedChord]);
 
     useEffect(() => {
+        // Clear the selected chord when the scale changes. Kept as an effect so the page behaves as before.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedChord(undefined)
     }, [selectedNote, selectedScaleType]);
 
