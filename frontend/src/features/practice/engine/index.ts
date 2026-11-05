@@ -7,3 +7,4 @@ export * from "./repeats.ts";
 export * from "./timeline.ts";
 export * from "./mxl.ts";
 export * from "./scoreConfig.ts";
+export * from "./program.ts";

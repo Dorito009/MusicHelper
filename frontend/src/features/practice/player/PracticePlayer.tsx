@@ -8,6 +8,8 @@ import type { ScoreConfig } from "../engine/scoreConfig.ts";
 import type { OsmdScore } from "../osmd/OsmdScore.ts";
 import { ScoreView } from "./ScoreView.tsx";
 import { usePracticeSettings } from "../settings/store.ts";
+import { useSelectedDevices } from "../ui/useMidi.ts";
+import { MidiBanner } from "../ui/MidiBanner.tsx";
 
 export interface PracticePlayerProps {
     scoreId: string;
@@ -29,6 +31,7 @@ export function PracticePlayer({ xml, title }: PracticePlayerProps) {
     const zoom = usePracticeSettings((s) => s.display.zoom);
     const updateSettings = usePracticeSettings((s) => s.update);
     const [osmd, setOsmd] = React.useState<OsmdScore | null>(null);
+    const devices = useSelectedDevices();
 
     React.useEffect(() => {
         if (!osmd || !timeline) return;
@@ -58,6 +61,7 @@ export function PracticePlayer({ xml, title }: PracticePlayerProps) {
                     </IconButton>
                 </Tooltip>
             </Stack>
+            <MidiBanner devices={devices} />
             {parsed.score.notices.map((notice) => (
                 <Alert key={notice} severity="info">{notice}</Alert>
             ))}
