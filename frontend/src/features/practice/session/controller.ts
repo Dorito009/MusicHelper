@@ -144,11 +144,12 @@ export class PracticeController {
         this.display = display;
     }
 
+    /** Sets the score and its config. A running run stops only if the score or the staff roles changed. */
     setScore(score: ParsedScore, config: ScoreConfig): void {
-        const running = this.snapshot.status !== "idle" && this.snapshot.status !== "finished";
+        const changed = score !== this.score || JSON.stringify(config.staves) !== JSON.stringify(this.config?.staves);
         this.score = score;
         this.config = config;
-        if (running) this.stop();
+        if (changed && this.isRunning) this.stop();
     }
 
     get isRunning(): boolean {

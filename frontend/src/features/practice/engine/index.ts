@@ -12,3 +12,4 @@ export * from "./steps.ts";
 export * from "./waitMode.ts";
 export * from "./grader.ts";
 export * from "./stats.ts";
+export * from "./tempoTrainer.ts";

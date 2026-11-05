@@ -33,6 +33,10 @@ import { StaffRolesPanel } from "./StaffRolesPanel.tsx";
 import { ResultsPanel } from "./ResultsPanel.tsx";
 import { HistoryPanel } from "./HistoryPanel.tsx";
 import { measureLabel } from "../session/results.ts";
+import { LoopPanel } from "./LoopPanel.tsx";
+import { TempoTrainerPanel } from "./TempoTrainerPanel.tsx";
+import { advanceTempoTrainer, newTrainerState } from "../engine/tempoTrainer.ts";
+import type { LoopRange, TempoTrainerState } from "../engine/scoreConfig.ts";
 
 export interface PracticePlayerProps {
     scoreId: string;
@@ -72,10 +76,15 @@ export function PracticePlayer(props: PracticePlayerProps) {
     const timeline = React.useMemo(() => (score ? buildTimeline(score) : null), [score]);
 
     const settings = usePracticeSettings();
-    const config = React.useMemo(
-        () => (score ? completeScoreConfig(props.config, score, channelDefaultsFromSettings(getPracticeSettings())) : props.config),
-        [props.config, score],
-    );
+    // The player owns the config while it's open; changes are saved through onConfigChange.
+    const completeConfig = (value: ScoreConfig) =>
+        score ? completeScoreConfig(value, score, channelDefaultsFromSettings(getPracticeSettings())) : value;
+    const [config, setConfig] = React.useState(() => completeConfig(props.config));
+    const [configFor, setConfigFor] = React.useState(score);
+    if (configFor !== score) {
+        setConfigFor(score);
+        setConfig(completeConfig(props.config));
+    }
 
     const devices = useSelectedDevices();
     const io = usePracticeIo(devices);
@@ -91,10 +100,11 @@ export function PracticePlayer(props: PracticePlayerProps) {
     const [bpm, setBpmState] = React.useState(() => clampBpm(props.config.lastBpm ?? baseTempo));
 
     // Latest values for callbacks that outlive a render.
-    const latest = React.useRef({ metronomeOn, config, scoreId, title, onConfigChange });
+    const latest = React.useRef({ metronomeOn, config, scoreId, title, onConfigChange, mode });
     React.useEffect(() => {
-        latest.current = { metronomeOn, config, scoreId, title, onConfigChange };
+        latest.current = { ...latest.current, metronomeOn, scoreId, title, onConfigChange, mode };
     });
+    const onPassRef = React.useRef<(run: RunResult) => void>(() => {});
 
     const [controller, setController] = React.useState<PracticeController | null>(null);
     const followRef = React.useRef<(measureIndex: number) => void>(() => {});
@@ -123,6 +133,7 @@ export function PracticePlayer(props: PracticePlayerProps) {
             },
             onResult: (run) => {
                 setResult(run);
+                onPassRef.current(run);
                 void saveSession({
                     scoreId: latest.current.scoreId,
                     scoreTitle: latest.current.title,
@@ -182,13 +193,58 @@ export function PracticePlayer(props: PracticePlayerProps) {
         };
     }, [osmd]);
 
-    const updateConfig = React.useCallback((next: ScoreConfig) => latest.current.onConfigChange(next), []);
+    const updateConfig = React.useCallback((patch: Partial<ScoreConfig>) => {
+        const next = { ...latest.current.config, ...patch };
+        latest.current.config = next;
+        setConfig(next);
+        latest.current.onConfigChange(next);
+    }, []);
 
-    const setBpm = (value: number) => {
+    const setBpm = React.useCallback((value: number, patch: Partial<ScoreConfig> = {}) => {
         const next = clampBpm(value);
         setBpmState(next);
         controller?.setBpm(next);
-        updateConfig({ ...latest.current.config, lastBpm: next });
+        updateConfig({ ...patch, lastBpm: next });
+    }, [controller, updateConfig]);
+
+    // Tempo trainer: after each play-along run or loop pass.
+    React.useEffect(() => {
+        onPassRef.current = (run) => {
+            const trainer = latest.current.config.trainer;
+            if (run.mode !== "play" || !trainer?.enabled) return;
+            const step = advanceTempoTrainer(trainer, run.stats.accuracy);
+            if (step.steppedUp) setBpm(step.state.currentBpm, { trainer: step.state });
+        };
+    }, [setBpm]);
+
+    const loopAnchor = React.useRef<number | null>(null);
+    const setLoop = (loop: LoopRange | null) => {
+        if (controller?.isRunning) controller.stop(); // changing the loop is a seek: stop and panic
+        loopAnchor.current = null;
+        updateConfig({ loop });
+    };
+    const onMeasureClick = (measureIndex: number, event: React.MouseEvent) => {
+        if (!event.shiftKey) return;
+        event.preventDefault();
+        const anchor = loopAnchor.current;
+        if (anchor === null) {
+            setLoop({ from: measureIndex, to: measureIndex });
+            loopAnchor.current = measureIndex;
+        } else {
+            setLoop({ from: Math.min(anchor, measureIndex), to: Math.max(anchor, measureIndex) });
+        }
+    };
+
+    const setTrainer = (trainer: TempoTrainerState) => updateConfig({ trainer });
+    const enableTrainer = (enabled: boolean) => {
+        const current = latest.current.config.trainer ?? newTrainerState(baseTempo, getPracticeSettings().trainer);
+        const trainer = { ...current, enabled };
+        if (enabled) setBpm(trainer.currentBpm, { trainer });
+        else updateConfig({ trainer });
+    };
+    const resetTrainer = () => {
+        const trainer = latest.current.config.trainer;
+        if (trainer) setBpm(trainer.startBpm, { trainer: { ...trainer, currentBpm: trainer.startBpm } });
     };
 
     const start = () => {
@@ -225,7 +281,13 @@ export function PracticePlayer(props: PracticePlayerProps) {
     const panel = (
         <Stack spacing={2} divider={<Divider flexItem />}>
             <Section title="Staves">
-                <StaffRolesPanel staves={score.staves} config={config} onChange={updateConfig} disabled={controller?.isRunning} />
+                <StaffRolesPanel staves={score.staves} config={config} onChange={(next) => updateConfig({ staves: next.staves })} disabled={controller?.isRunning} />
+            </Section>
+            <Section title="Loop">
+                <LoopPanel measures={score.measures} loop={config.loop} onChange={setLoop} />
+            </Section>
+            <Section title="Tempo trainer">
+                <TempoTrainerPanel state={config.trainer} onChange={setTrainer} onEnable={enableTrainer} onReset={resetTrainer} />
             </Section>
             <Section title="MIDI devices">
                 <MidiDeviceSelect devices={devices} />
@@ -273,13 +335,13 @@ export function PracticePlayer(props: PracticePlayerProps) {
                 <ResultsPanel
                     result={result}
                     onClose={() => setResult(null)}
-                    onLoopMeasure={(measureIndex) => updateConfig({ ...config, loop: { from: measureIndex, to: measureIndex } })}
+                    onLoopMeasure={(measureIndex) => setLoop({ from: measureIndex, to: measureIndex })}
                 />
             )}
 
             <Stack direction="row" spacing={2} sx={{ alignItems: "flex-start" }}>
                 <Paper variant="outlined" sx={{ p: { xs: 0.5, sm: 2 }, overflow: "hidden", flexGrow: 1, minWidth: 0 }}>
-                    <ScoreView xml={xml} staffKeys={staffKeys} zoom={settings.display.zoom} onReady={setOsmd} />
+                    <ScoreView xml={xml} staffKeys={staffKeys} zoom={settings.display.zoom} onReady={setOsmd} onMeasureClick={onMeasureClick} />
                 </Paper>
                 <Paper variant="outlined" sx={{ p: 2, width: 340, flexShrink: 0, display: { xs: "none", lg: "block" } }}>
                     {panel}
