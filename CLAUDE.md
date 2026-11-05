@@ -38,5 +38,8 @@ Set page titles with the route's `head` option.
 ## Commands
 
 - `npm install`, then `npm run build` (builds `musiclib`, then `frontend`)
-- `npm run lint --workspace frontend`
+- `npm run lint`
+- `npm test` (builds `musiclib`, then runs the Vitest unit tests in `frontend`)
 - `npm run dev --workspace frontend`
+
+The practice section's full spec is in `docs/practice-spec.md`.
