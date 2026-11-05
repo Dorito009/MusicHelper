@@ -9,6 +9,8 @@
     "build": "npm run build -ws",
     "build:lib": "npm run build --workspace musiclib",
     "build:frontend": "npm run build --workspace frontend",
-    "deploy": "npm run build:lib && npm run build:frontend && npm run deploy:pages --workspace frontend"
+    "deploy": "npm run build:lib && npm run build:frontend && npm run deploy:pages --workspace frontend",
+    "lint": "npm run lint --workspace frontend",
+    "test": "npm run build:lib && npm run test --workspace frontend"
   }
 }
