@@ -1,6 +1,6 @@
 import {createFileRoute} from "@tanstack/react-router";
 import {useLiveQuery} from "dexie-react-hooks";
-import {Alert, Container} from "@mui/material";
+import {Alert, Container, Typography} from "@mui/material";
 import {practiceDb} from "../../../features/practice/storage/db.ts";
 import {updateScoreConfig} from "../../../features/practice/storage/scores.ts";
 import {PracticePlayer} from "../../../features/practice/player/PracticePlayer.tsx";
@@ -21,6 +21,7 @@ function PlayPage() {
 
     return (
         <Container maxWidth="xl" sx={{py: 2}}>
+            {score === undefined && <Typography color="text.secondary">Loading the score…</Typography>}
             {score === null && (
                 <Alert severity="warning" action={<LinkButton to="/practice" color="inherit">Back to the library</LinkButton>}>
                     This score isn't in your library. It may have been deleted.

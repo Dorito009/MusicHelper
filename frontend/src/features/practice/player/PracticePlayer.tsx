@@ -34,6 +34,8 @@ import { ResultsPanel } from "./ResultsPanel.tsx";
 import { HistoryPanel } from "./HistoryPanel.tsx";
 import { measureLabel } from "../session/results.ts";
 import { LoopPanel } from "./LoopPanel.tsx";
+import { OnScreenPiano } from "./OnScreenPiano.tsx";
+import { usePlayerShortcuts } from "./useShortcuts.ts";
 import { TempoTrainerPanel } from "./TempoTrainerPanel.tsx";
 import { advanceTempoTrainer, newTrainerState } from "../engine/tempoTrainer.ts";
 import type { LoopRange, TempoTrainerState } from "../engine/scoreConfig.ts";
@@ -264,6 +266,26 @@ export function PracticePlayer(props: PracticePlayerProps) {
 
     const stop = () => controller?.stop();
 
+    usePlayerShortcuts({
+        toggleStart: () => (controller?.isRunning ? stop() : start()),
+        restart: start,
+        faster: () => setBpm(bpm + 2),
+        slower: () => setBpm(bpm - 2),
+        toggleMetronome: () => setMetronomeOn((on) => !on),
+        panic: () => controller?.panic(),
+    });
+
+    // Piano range: the notes I play, widened to whole octaves (at least two).
+    const pianoRange = React.useMemo(() => {
+        const mine = (timeline?.notes ?? []).filter((n) => config.staves[n.staffKey]?.role === "me").map((n) => n.midi);
+        let low = mine.length ? Math.min(...mine) : 48;
+        let high = mine.length ? Math.max(...mine) : 83;
+        low = Math.floor(low / 12) * 12;
+        high = Math.ceil((high + 1) / 12) * 12 - 1;
+        if (high - low < 23) high = low + 23;
+        return { low: Math.max(21, low), high: Math.min(108, high) };
+    }, [timeline, config.staves]);
+
     const changeMode = (next: SessionMode) => {
         if (next === mode) return;
         controller?.stop(); // a mode change stops the run (and sends panic)
@@ -329,6 +351,8 @@ export function PracticePlayer(props: PracticePlayerProps) {
                 onPanic={() => controller?.panic()}
                 onOpenPanel={() => setPanelOpen(true)}
                 loopLabel={loopLabel}
+                showPiano={settings.display.showPiano}
+                onShowPianoChange={(showPiano) => settings.update("display", { showPiano })}
             />
 
             {result && (
@@ -347,6 +371,18 @@ export function PracticePlayer(props: PracticePlayerProps) {
                     {panel}
                 </Paper>
             </Stack>
+
+            {settings.display.showPiano && (
+                <Paper elevation={6} sx={{ position: "sticky", bottom: 0, zIndex: 4, py: 1, px: 1 }}>
+                    <OnScreenPiano
+                        low={pianoRange.low}
+                        high={pianoRange.high}
+                        expected={snapshot.expectedPitches.filter((p) => !snapshot.pressedPitches.includes(p))}
+                        held={snapshot.heldKeys}
+                        feedback={snapshot.keyFeedback}
+                    />
+                </Paper>
+            )}
 
             <Drawer anchor="right" open={panelOpen} onClose={() => setPanelOpen(false)} sx={{ display: { lg: "none" } }}>
                 <Box sx={{ width: { xs: "100vw", sm: 380 }, p: 2 }}>

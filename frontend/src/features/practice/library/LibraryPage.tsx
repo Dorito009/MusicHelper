@@ -102,7 +102,7 @@ export function LibraryPage() {
                         </Typography>
                     </Box>
                     <Stack direction="row" spacing={1}>
-                        <LinkButton variant="outlined" to="/practice/sight-reading">
+                        <LinkButton variant="outlined" to="/practice/sight-reading" sx={{ display: { xs: "none", sm: "inline-flex" } }}>
                             Generate an exercise
                         </LinkButton>
                         <Button variant="contained" startIcon={<UploadFileIcon />} onClick={openPicker}>

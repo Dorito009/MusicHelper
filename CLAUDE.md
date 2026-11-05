@@ -27,6 +27,16 @@ frontend/src/
 Each section layout (`route.tsx`) renders the shared `AppHeader` with its own nav links and right-side actions.
 Set page titles with the route's `head` option.
 
+### Practice section (`features/practice`)
+
+- `engine/`: MusicXML parser, timeline, repeats, grading, wait-mode stepping, sight-reading generator. Plain TypeScript.
+- `midi/`: input/output interfaces, Web MIDI, computer keyboard, scheduler (Web Worker tick), thru, panic. Plain TypeScript.
+- `osmd/`: the only module that uses OpenSheetMusicDisplay.
+- `session/`: the controller that runs a practice run; `player/`, `library/`, `settings/`, `sightreading/`, `ui/`: React.
+- Storage: IndexedDB via Dexie (`storage/db.ts`); settings in a zustand store under `music-helper:practice:settings`.
+- There is no built-in sound: everything goes out as MIDI. Full spec: `docs/practice-spec.md`.
+- ESLint enforces the theory/practice boundary and keeps React, MUI and OSMD out of `engine/` and `midi/`.
+
 ## Rules
 
 - `features/practice` must never import from `features/theory`, and `features/theory` must never import from `features/practice`.
@@ -41,5 +51,5 @@ Set page titles with the route's `head` option.
 - `npm run lint`
 - `npm test` (builds `musiclib`, then runs the Vitest unit tests in `frontend`)
 - `npm run dev --workspace frontend`
+- `npm run test:e2e --workspace frontend` (Playwright smoke tests; first run `npx playwright install chromium`)
 
-The practice section's full spec is in `docs/practice-spec.md`.

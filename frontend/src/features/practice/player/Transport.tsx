@@ -25,6 +25,8 @@ import ReplayIcon from "@mui/icons-material/Replay";
 import RemoveIcon from "@mui/icons-material/Remove";
 import AddIcon from "@mui/icons-material/Add";
 import TuneIcon from "@mui/icons-material/Tune";
+import PianoIcon from "@mui/icons-material/Piano";
+import PianoOffIcon from "@mui/icons-material/PianoOff";
 import NotificationsOffIcon from "@mui/icons-material/NotificationsOff";
 import type { SessionMode } from "../storage/db.ts";
 import type { ControllerSnapshot } from "../session/controller.ts";
@@ -50,6 +52,8 @@ export interface TransportProps {
     onPanic: () => void;
     onOpenPanel?: () => void;
     loopLabel: string | null;
+    showPiano: boolean;
+    onShowPianoChange: (show: boolean) => void;
 }
 
 export function Transport(props: TransportProps) {
@@ -148,6 +152,11 @@ export function Transport(props: TransportProps) {
                     <Button color="error" variant="outlined" size="small" startIcon={<NotificationsOffIcon />} onClick={props.onPanic} aria-keyshortcuts="Escape">
                         Panic
                     </Button>
+                </Tooltip>
+                <Tooltip title={props.showPiano ? "Hide the on-screen piano" : "Show the on-screen piano"}>
+                    <IconButton onClick={() => props.onShowPianoChange(!props.showPiano)} aria-label={props.showPiano ? "Hide the on-screen piano" : "Show the on-screen piano"}>
+                        {props.showPiano ? <PianoIcon /> : <PianoOffIcon />}
+                    </IconButton>
                 </Tooltip>
                 {props.onOpenPanel && (
                     <Tooltip title="Staves, loop, tempo trainer and history">
