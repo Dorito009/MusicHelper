@@ -8,3 +8,5 @@ export * from "./timeline.ts";
 export * from "./mxl.ts";
 export * from "./scoreConfig.ts";
 export * from "./program.ts";
+export * from "./steps.ts";
+export * from "./waitMode.ts";
