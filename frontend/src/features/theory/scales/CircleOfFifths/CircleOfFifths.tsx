@@ -1,7 +1,7 @@
 import { Box, useTheme } from "@mui/material";
 import { noteFromPitchClass, type PitchClass, type Scale, type ScaleDegree } from "musiclib";
 import { CircleOfFifthsQualityOverlay } from "./CircleOfFifthsQualityOverlay.tsx";
-import { NOTE_DISPLAY_FONT_FAMILY, useNoteFormatter } from "../../../utils/noteDisplay.ts";
+import { NOTE_DISPLAY_FONT_FAMILY, useNoteFormatter } from "../../utils/noteDisplay.ts";
 
 type CircleOfFifthsProps = {
     selectedScale: Scale;

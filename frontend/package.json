@@ -26,7 +26,6 @@
     "musiclib": "*",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "react-router-dom": "^7.13.2",
     "soundfont-player": "^0.12.0",
     "tonal": "^6.4.3",
     "webmidi": "^3.1.14",

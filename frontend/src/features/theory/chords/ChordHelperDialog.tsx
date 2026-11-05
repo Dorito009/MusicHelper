@@ -16,9 +16,9 @@ import {
 } from "@mui/material";
 import {type Chord, type Note} from "musiclib";
 import {ChordPiano} from "../scales/ChordPiano.tsx";
-import {NOTE_DISPLAY_TEXT_SX, useNoteFormatter} from "../../utils/noteDisplay.ts";
-import {usePreferSimpleSpellings} from "../../utils/preferences.ts";
-import {getDisplayChord} from "../../utils/chordDisplay.ts";
+import {NOTE_DISPLAY_TEXT_SX, useNoteFormatter} from "../utils/noteDisplay.ts";
+import {usePreferSimpleSpellings} from "../utils/preferences.ts";
+import {getDisplayChord} from "../utils/chordDisplay.ts";
 
 export type ChordHelperDialogEntry = {
     uid: string;

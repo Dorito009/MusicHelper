@@ -2,9 +2,9 @@ import * as React from "react";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { Box, IconButton, useTheme } from "@mui/material";
 import { noteFromPitchClass, type Note, type PitchClass, type Scale } from "musiclib";
-import { normalizeInstrumentName, playScale } from "../../audio/soundfont.ts";
-import { NOTE_DISPLAY_FONT_FAMILY, useNoteFormatter } from "../../utils/noteDisplay.ts";
-import { useInstrument } from "../../utils/preferences.ts";
+import { normalizeInstrumentName, playScale } from "../audio/soundfont.ts";
+import { NOTE_DISPLAY_FONT_FAMILY, useNoteFormatter } from "../utils/noteDisplay.ts";
+import { useInstrument } from "../utils/preferences.ts";
 
 type NoteWheelProps = {
     selectedScale: Scale;

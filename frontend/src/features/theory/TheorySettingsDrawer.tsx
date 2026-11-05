@@ -1,16 +1,16 @@
 import { Box, Drawer, FormControl, FormControlLabel, InputLabel, MenuItem, Select, Stack, Switch, Typography } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
-import { formatInstrumentLabel, normalizeInstrumentName, ORCHESTRATION_INSTRUMENTS, playInstrumentPreview } from "../audio/soundfont.ts";
-import { NOTE_DISPLAY_TEXT_SX } from "../utils/noteDisplay.ts";
-import type { DoubleAccidentalDisplay, SingleAccidentalDisplay } from "../utils/preferences.ts";
-import { useAccidentalDisplayPreference, useInstrument, usePreferSimpleChordLabels, usePreferSimpleSpellings } from "../utils/preferences.ts";
+import { formatInstrumentLabel, normalizeInstrumentName, ORCHESTRATION_INSTRUMENTS, playInstrumentPreview } from "./audio/soundfont.ts";
+import { NOTE_DISPLAY_TEXT_SX } from "./utils/noteDisplay.ts";
+import type { DoubleAccidentalDisplay, SingleAccidentalDisplay } from "./utils/preferences.ts";
+import { useAccidentalDisplayPreference, useInstrument, usePreferSimpleChordLabels, usePreferSimpleSpellings } from "./utils/preferences.ts";
 
-type GlobalSettingsDrawerProps = {
+type TheorySettingsDrawerProps = {
     open: boolean;
     onClose: () => void;
 };
 
-export function GlobalSettingsDrawer({ open, onClose }: GlobalSettingsDrawerProps) {
+export function TheorySettingsDrawer({ open, onClose }: TheorySettingsDrawerProps) {
     const [preferSimpleSpellings, setPreferSimpleSpellings] = usePreferSimpleSpellings();
     const [preferSimpleChordLabels, setPreferSimpleChordLabels] = usePreferSimpleChordLabels();
     const [instrument, setInstrument] = useInstrument();
@@ -29,7 +29,7 @@ export function GlobalSettingsDrawer({ open, onClose }: GlobalSettingsDrawerProp
                 <Stack spacing={2.5}>
                     <Typography variant="h6">Settings</Typography>
                     <Typography variant="body2" color="text.secondary">
-                        Control how note spellings, chord labels, and playback sound are shown across the app.
+                        Control how note spellings, chord labels, and playback sound are shown on the theory pages.
                     </Typography>
                     <FormControlLabel
                         control={
