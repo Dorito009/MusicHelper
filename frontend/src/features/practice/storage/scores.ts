@@ -71,3 +71,18 @@ export async function saveSession(session: Omit<SessionRecord, "id">): Promise<S
 export async function deleteSession(id: string): Promise<void> {
     await practiceDb.sessions.delete(id);
 }
+
+/** Saves a generated exercise (or updates it, keyed by its id) and links its existing history. */
+export async function saveExerciseToLibrary(input: { id: string; xml: string; title: string; seed: string }): Promise<void> {
+    const existing = await practiceDb.scores.get(input.id);
+    if (existing) return;
+    const sessions = await practiceDb.sessions.where("scoreId").equals(input.id).toArray();
+    await importScoreXml(input.xml, `sight-reading-${input.seed}.musicxml`, {
+        id: input.id,
+        title: input.title,
+        source: "sight-reading",
+        seed: input.seed,
+        lastPracticedAt: sessions.length ? Math.max(...sessions.map((s) => s.startedAt)) : null,
+        bestAccuracy: sessions.length ? Math.max(...sessions.map((s) => s.stats.accuracy)) : null,
+    });
+}
