@@ -16,8 +16,8 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import {noteRows, formatNoteASCII, getAllScaleTypes} from "musiclib"
 import type {Note, ScaleType} from "musiclib"
-import { NOTE_DISPLAY_TEXT_SX, useNoteFormatter } from "../../utils/noteDisplay.ts";
-import { type ChordVisibilityKey, useChordVisibilityPreferences } from "../../utils/preferences.ts";
+import { NOTE_DISPLAY_TEXT_SX, useNoteFormatter } from "../utils/noteDisplay.ts";
+import { type ChordVisibilityKey, useChordVisibilityPreferences } from "../utils/preferences.ts";
 
 export const SCALE_DRAWER_WIDTH = 260;
 

@@ -5,9 +5,9 @@ import LibraryMusicIcon from '@mui/icons-material/LibraryMusic'
 import VolumeOffIcon from '@mui/icons-material/VolumeOff'
 import VolumeUpIcon from '@mui/icons-material/VolumeUp'
 import SettingsIcon from '@mui/icons-material/Settings'
-import { setMuted } from '../audio/soundfont.ts'
-import { useSoundMuted } from '../utils/preferences.ts'
-import { GlobalSettingsDrawer } from './GlobalSettingsDrawer.tsx'
+import { setMuted } from '../features/theory/audio/soundfont.ts'
+import { useSoundMuted } from '../features/theory/utils/preferences.ts'
+import { GlobalSettingsDrawer } from '../features/theory/GlobalSettingsDrawer.tsx'
 
 const pages = [
     { label: 'Scales', to: '/scales' },

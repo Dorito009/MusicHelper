@@ -21,12 +21,12 @@ import type {Chord} from "musiclib"
 import AddIcon from '@mui/icons-material/Add';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import ViewCarouselRoundedIcon from '@mui/icons-material/ViewCarouselRounded';
-import {normalizeInstrumentName, playChord} from "../audio/soundfont.ts";
-import {ChordDialog} from "../components/chords/ChordDialog.tsx";
-import {ChordCard} from "../components/chords/ChordCard.tsx";
-import {ChordHelperDialog} from "../components/chords/ChordHelperDialog.tsx";
-import {useSavedChords} from "../utils/ChordPageUtils.ts";
-import {useInstrument} from "../utils/preferences.ts";
+import {normalizeInstrumentName, playChord} from "../features/theory/audio/soundfont.ts";
+import {ChordDialog} from "../features/theory/chords/ChordDialog.tsx";
+import {ChordCard} from "../features/theory/chords/ChordCard.tsx";
+import {ChordHelperDialog} from "../features/theory/chords/ChordHelperDialog.tsx";
+import {useSavedChords} from "../features/theory/utils/ChordPageUtils.ts";
+import {useInstrument} from "../features/theory/utils/preferences.ts";
 
 export const Route = createFileRoute('/chords')({
     component: ChordsPage,

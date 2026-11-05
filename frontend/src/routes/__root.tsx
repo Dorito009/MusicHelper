@@ -2,7 +2,7 @@ import {createRootRouteWithContext, Outlet, redirect, useRouterState} from "@tan
 import { useEffect } from "react";
 import {z} from 'zod';
 import NavHeader from "../components/NavHeader.tsx";
-import { warmupAudio } from "../audio/soundfont.ts";
+import { warmupAudio } from "../features/theory/audio/soundfont.ts";
 
 
 const rootSearchSchema = z.object({

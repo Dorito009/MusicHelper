@@ -1,9 +1,9 @@
 import * as React from "react";
 import { alpha, Box, Stack, Typography, useTheme } from "@mui/material";
 import { type Scale , type Chord} from "musiclib";
-import { type ChordVisibilityKey, useChordVisibilityPreferences, usePreferSimpleChordLabels, usePreferSimpleSpellings } from "../../utils/preferences.ts";
-import { NOTE_DISPLAY_TEXT_SX, useNoteFormatter } from "../../utils/noteDisplay.ts";
-import {getDisplayScale} from "../../utils/chordDisplay.ts";
+import { type ChordVisibilityKey, useChordVisibilityPreferences, usePreferSimpleChordLabels, usePreferSimpleSpellings } from "../utils/preferences.ts";
+import { NOTE_DISPLAY_TEXT_SX, useNoteFormatter } from "../utils/noteDisplay.ts";
+import {getDisplayScale} from "../utils/chordDisplay.ts";
 
 type ScaleChordTableProps = {
     scale: Scale;

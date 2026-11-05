@@ -3,8 +3,8 @@ import type { Chord, Scale, Note, PitchClass } from "musiclib";
 import { pianoNotes, simplifyNote } from "musiclib";
 import { Box, Typography, useTheme } from "@mui/material";
 import React from "react";
-import { NOTE_DISPLAY_TEXT_SX, useNoteFormatter } from "../../utils/noteDisplay.ts";
-import { usePreferSimpleSpellings } from "../../utils/preferences.ts";
+import { NOTE_DISPLAY_TEXT_SX, useNoteFormatter } from "../utils/noteDisplay.ts";
+import { usePreferSimpleSpellings } from "../utils/preferences.ts";
 
 type ChordPianoProps = {
     scale?: Scale;

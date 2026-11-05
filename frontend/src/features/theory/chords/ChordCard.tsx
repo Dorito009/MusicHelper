@@ -1,6 +1,6 @@
 import type {Chord} from "musiclib"
 import { CSS } from "@dnd-kit/utilities";
-import {NOTE_DISPLAY_TEXT_SX, useNoteFormatter} from "../../utils/noteDisplay.ts";
+import {NOTE_DISPLAY_TEXT_SX, useNoteFormatter} from "../utils/noteDisplay.ts";
 import { useSortable } from "@dnd-kit/sortable";
 import {Box, Card, CardContent, Chip, IconButton, Stack, Typography } from "@mui/material";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
@@ -9,8 +9,8 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
 import {ChordPiano} from "../scales/ChordPiano.tsx";
-import {usePreferSimpleSpellings} from "../../utils/preferences.ts";
-import {getDisplayChord} from "../../utils/chordDisplay.ts";
+import {usePreferSimpleSpellings} from "../utils/preferences.ts";
+import {getDisplayChord} from "../utils/chordDisplay.ts";
 
 type ChordCardProps = {
     uid: string;

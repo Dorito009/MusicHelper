@@ -3,9 +3,9 @@ import type {Chord, Note, ChordType, ChordFamily} from "musiclib"
 import {useState} from "react";
 import CloseIcon from '@mui/icons-material/Close';
 import {buildChord, notePairs, getAllChordTypes, formatNoteASCII} from "musiclib"
-import {NOTE_DISPLAY_TEXT_SX, useNoteFormatter} from "../../utils/noteDisplay.ts";
-import {usePreferSimpleSpellings} from "../../utils/preferences.ts";
-import {getDisplayChord} from "../../utils/chordDisplay.ts";
+import {NOTE_DISPLAY_TEXT_SX, useNoteFormatter} from "../utils/noteDisplay.ts";
+import {usePreferSimpleSpellings} from "../utils/preferences.ts";
+import {getDisplayChord} from "../utils/chordDisplay.ts";
 
 const FAMILY_ORDER: ChordFamily[] = ["power", "suspended", "triad", "seventh", "sixth", "added-tone"];
 const CHORD_TYPE_ORDER: Record<ChordFamily, string[]> = {

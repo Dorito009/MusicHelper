@@ -1,9 +1,9 @@
 import { Box, Drawer, FormControl, FormControlLabel, InputLabel, MenuItem, Select, Stack, Switch, Typography } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
-import { formatInstrumentLabel, normalizeInstrumentName, ORCHESTRATION_INSTRUMENTS, playInstrumentPreview } from "../audio/soundfont.ts";
-import { NOTE_DISPLAY_TEXT_SX } from "../utils/noteDisplay.ts";
-import type { DoubleAccidentalDisplay, SingleAccidentalDisplay } from "../utils/preferences.ts";
-import { useAccidentalDisplayPreference, useInstrument, usePreferSimpleChordLabels, usePreferSimpleSpellings } from "../utils/preferences.ts";
+import { formatInstrumentLabel, normalizeInstrumentName, ORCHESTRATION_INSTRUMENTS, playInstrumentPreview } from "./audio/soundfont.ts";
+import { NOTE_DISPLAY_TEXT_SX } from "./utils/noteDisplay.ts";
+import type { DoubleAccidentalDisplay, SingleAccidentalDisplay } from "./utils/preferences.ts";
+import { useAccidentalDisplayPreference, useInstrument, usePreferSimpleChordLabels, usePreferSimpleSpellings } from "./utils/preferences.ts";
 
 type GlobalSettingsDrawerProps = {
     open: boolean;

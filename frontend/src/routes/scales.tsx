@@ -8,17 +8,17 @@ import {
     Stack,
     Typography,
 } from "@mui/material";
-import { ScaleChordTable } from "../components/scales/ScaleChordTable.tsx";
-import { ScaleSettingsDrawer } from "../components/scales/ScaleSettingsDrawer.tsx";
+import { ScaleChordTable } from "../features/theory/scales/ScaleChordTable.tsx";
+import { ScaleSettingsDrawer } from "../features/theory/scales/ScaleSettingsDrawer.tsx";
 import type {Note, ScaleType, Chord} from "musiclib"
 import {naturalNotes, getAllScaleTypes, constructScale, formatNoteASCII, getScaleTypeById, noteFromString} from "musiclib"
-import {NoteWheel} from "../components/scales/NoteWheel.tsx";
-import {CircleOfFifths} from "../components/scales/CircleOfFifths/CircleOfFifths.tsx";
-import { useInstrument, usePreferSimpleSpellings, useStringPreference } from "../utils/preferences.ts";
-import { NOTE_DISPLAY_TEXT_SX, useNoteFormatter } from "../utils/noteDisplay.ts";
-import {ChordPiano} from "../components/scales/ChordPiano.tsx";
-import { normalizeInstrumentName, playChord } from "../audio/soundfont.ts";
-import {getDisplayChord, getDisplayScale} from "../utils/chordDisplay.ts";
+import {NoteWheel} from "../features/theory/scales/NoteWheel.tsx";
+import {CircleOfFifths} from "../features/theory/scales/CircleOfFifths/CircleOfFifths.tsx";
+import { useInstrument, usePreferSimpleSpellings, useStringPreference } from "../features/theory/utils/preferences.ts";
+import { NOTE_DISPLAY_TEXT_SX, useNoteFormatter } from "../features/theory/utils/noteDisplay.ts";
+import {ChordPiano} from "../features/theory/scales/ChordPiano.tsx";
+import { normalizeInstrumentName, playChord } from "../features/theory/audio/soundfont.ts";
+import {getDisplayChord, getDisplayScale} from "../features/theory/utils/chordDisplay.ts";
 
 
 const SELECTED_NOTE_KEY = "music-helper:selected-note";
