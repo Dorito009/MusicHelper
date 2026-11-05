@@ -138,6 +138,7 @@ export function PracticePlayer(props: PracticePlayerProps) {
             onCursor: (measureIndex) => followRef.current(measureIndex),
         });
         setController(created);
+        if (import.meta.env.DEV) (window as unknown as { __practiceController?: PracticeController }).__practiceController = created;
         return () => {
             created.dispose();
             setController(null);

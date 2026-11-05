@@ -40,6 +40,8 @@ export class OsmdScore {
     private readonly host: HTMLDivElement;
     private readonly cursorEl: HTMLDivElement;
     private readonly loopLayer: HTMLDivElement;
+    private readonly markerLayer: HTMLDivElement;
+    private markers: Array<{ measureIndex: number; onset: number }> = [];
     private readonly osmd: OpenSheetMusicDisplay;
     /** OSMD staff index for each of our staff keys, in score order. */
     private staffIndex = new Map<StaffKey, number>();
@@ -59,12 +61,14 @@ export class OsmdScore {
         this.host = document.createElement("div");
         this.loopLayer = document.createElement("div");
         this.loopLayer.style.cssText = "position:absolute;inset:0;pointer-events:none;";
+        this.markerLayer = document.createElement("div");
+        this.markerLayer.style.cssText = "position:absolute;inset:0;pointer-events:none;";
         this.cursorEl = document.createElement("div");
         this.cursorEl.dataset.testid = "score-cursor";
         this.cursorEl.style.cssText =
             "position:absolute;width:3px;background:rgba(79,195,247,0.85);box-shadow:0 0 6px rgba(79,195,247,0.8);" +
             "pointer-events:none;display:none;border-radius:2px;transition:left 60ms linear, top 60ms linear;";
-        container.append(this.host, this.loopLayer, this.cursorEl);
+        container.append(this.host, this.loopLayer, this.markerLayer, this.cursorEl);
 
         this.osmd = new OpenSheetMusicDisplay(this.host, {
             autoResize: false,
@@ -102,6 +106,7 @@ export class OsmdScore {
         this.buildIndex();
         for (const { note, color } of this.wantedColors.values()) this.paint(note, color);
         this.updateLoopOverlay();
+        this.drawMarkers();
         if (this.cursorPosition) this.moveCursor(this.cursorPosition.measureIndex, this.cursorPosition.onset);
     }
 
@@ -261,6 +266,35 @@ export class OsmdScore {
         const duration = measures[0]?.parentSourceMeasure?.Duration?.RealValue;
         if (box && duration) return box.x + Math.min(1, onset / (duration * 4)) * box.width;
         return null;
+    }
+
+    /** A red marker above the staff where an extra (unmatched) note was played. */
+    markExtra(measureIndex: number, onsetInMeasure: number): void {
+        this.markers.push({ measureIndex, onset: onsetInMeasure });
+        this.drawMarker(measureIndex, onsetInMeasure);
+    }
+
+    clearMarkers(): void {
+        this.markers = [];
+        this.markerLayer.replaceChildren();
+    }
+
+    private drawMarkers(): void {
+        this.markerLayer.replaceChildren();
+        for (const marker of this.markers) this.drawMarker(marker.measureIndex, marker.onset);
+    }
+
+    private drawMarker(measureIndex: number, onset: number): void {
+        const box = this.measureBoxes.find((b) => b.measureIndex === measureIndex);
+        if (!box) return;
+        const offset = this.svgOffset();
+        const x = this.xForOnset(measureIndex, onset) ?? box.x;
+        const dot = document.createElement("div");
+        dot.dataset.testid = "extra-marker";
+        dot.style.cssText =
+            `position:absolute;left:${offset.x + x + 2}px;top:${offset.y + box.y - 16}px;width:8px;height:8px;` +
+            `border-radius:50%;background:${COLORS.bad};box-shadow:0 0 4px ${COLORS.bad};`;
+        this.markerLayer.append(dot);
     }
 
     /** Written measure index under a point (client coordinates), or null. */

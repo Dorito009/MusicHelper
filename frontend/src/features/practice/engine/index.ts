@@ -10,3 +10,5 @@ export * from "./scoreConfig.ts";
 export * from "./program.ts";
 export * from "./steps.ts";
 export * from "./waitMode.ts";
+export * from "./grader.ts";
+export * from "./stats.ts";

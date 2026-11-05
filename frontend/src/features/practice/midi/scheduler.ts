@@ -25,6 +25,8 @@ export interface SchedulerHooks {
     onEnd?: (endTimeMs: number) => void;
     /** Every tick, after dispatching. */
     onTick?: (now: number) => void;
+    /** Keep ticking after playback ended (e.g. until the last grading windows close). */
+    keepAlive?: () => boolean;
 }
 
 export interface SchedulerOptions {
@@ -96,6 +98,7 @@ export class Scheduler {
     private dispatching = false;
     private ticking = false;
     private endScheduled = false;
+    private boundaries: number[] = [];
     private offs: PendingOff[] = [];
     private due: DueCallback[] = [];
 
@@ -144,6 +147,7 @@ export class Scheduler {
         this.mainIndex = this.firstIndexAtOrAfter(fromBeat);
         this.expectIndex = this.mainIndex;
         this.iteration = 0;
+        this.boundaries = [];
         this.endScheduled = false;
         this.dispatching = true;
         this.ensureTicking();
@@ -195,6 +199,13 @@ export class Scheduler {
         return this.tempoMap.beatAfter(this.anchorBeat, time - this.anchorTime, this.factor);
     }
 
+    /** Which loop pass a moment belongs to (0 before the first loop boundary). */
+    iterationAt(time: number): number {
+        let iteration = 0;
+        for (const boundary of this.boundaries) if (boundary <= time) iteration++;
+        return iteration;
+    }
+
     /** Milliseconds per quarter note at a beat, with the current tempo factor. */
     msPerBeatAt(beat: number): number {
         return 60000 / (this.tempoMap.bpmAt(beat) * this.factor);
@@ -206,7 +217,7 @@ export class Scheduler {
         this.flushOffs(now + this.offLookaheadMs);
         this.fireDue(now);
         this.hooks.onTick?.(now);
-        if (!this.dispatching && this.offs.length === 0 && this.due.length === 0) this.stopTicking();
+        if (!this.dispatching && this.offs.length === 0 && this.due.length === 0 && !this.hooks.keepAlive?.()) this.stopTicking();
     }
 
     private dispatch(now: number): void {
@@ -250,6 +261,7 @@ export class Scheduler {
                 this.out.allNotesOffAt(endTime - 1, [this.getMetronome().channel]);
                 this.addDue(endTime, () => this.hooks.onIterationEnd?.(finished, endTime));
                 this.iteration++;
+                this.boundaries.push(endTime);
                 this.anchorBeat = 0;
                 this.anchorTime = endTime;
                 this.mainIndex = this.firstIndexAtOrAfter(0);

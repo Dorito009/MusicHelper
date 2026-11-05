@@ -4,14 +4,16 @@
 import { buildProgram } from "../engine/program.ts";
 import type { LoopRange, ScoreConfig } from "../engine/scoreConfig.ts";
 import { buildSteps } from "../engine/steps.ts";
-import { buildTimeline } from "../engine/timeline.ts";
+import { buildTimeline, measureAtBeat } from "../engine/timeline.ts";
+import { PlayAlongGrader, type GradeEvent } from "../engine/grader.ts";
+import { computeStats } from "../engine/stats.ts";
 import type { NoteEvent, ParsedScore, ScoreTimeline } from "../engine/types.ts";
 import { WaitModeEngine } from "../engine/waitMode.ts";
 import { Scheduler, type CueEvent, type MetronomeSettings } from "../midi/scheduler.ts";
 import type { Clock, InputSource, MidiInputEvent, Ticker } from "../midi/types.ts";
 import type { MidiOut } from "../midi/midiOut.ts";
 import type { SessionMode, SessionStats } from "../storage/db.ts";
-import { waitModeStats } from "./results.ts";
+import { measureLabel, waitModeStats } from "./results.ts";
 
 /** What the controller needs from the rendered score. */
 export interface ScoreDisplay {
@@ -19,6 +21,9 @@ export interface ScoreDisplay {
     hideCursor(): void;
     colorNote(note: NoteEvent, color: "good" | "timing" | "bad" | "expected" | null): void;
     clearColors(): void;
+    /** A red marker for an extra note. */
+    markExtra?(measureIndex: number, onsetInMeasure: number): void;
+    clearMarkers?(): void;
 }
 
 export type RunStatus = "idle" | "countIn" | "playing" | "waiting" | "finished";
@@ -92,6 +97,10 @@ export class PracticeController {
     private options: RunOptions | null = null;
     private scheduler: Scheduler | null = null;
     private wait: WaitModeEngine | null = null;
+    private grader: PlayAlongGrader | null = null;
+    /** Loop passes (or the single run) waiting for their last windows to close. */
+    private toSettle: Array<{ iteration: number; endTime: number; final: boolean }> = [];
+    private passStartTimes = new Map<number, number>();
     private startedAt = 0;
     /** Wait-for-me: start beat of the segment that's playing. */
     private segmentFrom = -Infinity;
@@ -174,6 +183,8 @@ export class PracticeController {
             this.deps.out.panic(this.deps.getPanicChannels());
         }
         this.wait = null;
+        this.grader = null;
+        this.toSettle = [];
         if (this.snapshot.status !== "idle" && this.snapshot.status !== "finished") {
             this.update({ status: "idle", expectedPitches: [], pressedPitches: [] });
         }
@@ -317,11 +328,130 @@ export class PracticeController {
         this.deps.onResult?.(result);
     }
 
-    // ---------- Play along (milestone 6) ----------
+    // ---------- Play along ----------
 
     private startPlayAlong(options: RunOptions): void {
-        void options;
-        this.update({ status: "idle" });
+        this.grader = new PlayAlongGrader({ toleranceMs: options.toleranceMs, rhythmOnly: options.rhythmOnly });
+        this.toSettle = [];
+        this.passStartTimes = new Map();
+        // Expected notes are announced early enough to match presses up to the tolerance early.
+        const scheduler = this.createScheduler(undefined, options.toleranceMs + 160);
+        this.scheduler = scheduler;
+        scheduler.hooks = {
+            onExpect: (note, time, iteration) => {
+                if (!this.grader) return;
+                if (!this.passStartTimes.has(iteration)) this.passStartTimes.set(iteration, time);
+                this.applyGrades(this.grader.addExpected(note, time, iteration));
+            },
+            onCue: (cue) => this.onCue(cue),
+            onTick: (now) => this.onPlayTick(now),
+            onIterationEnd: (iteration, endTime) => {
+                this.toSettle.push({ iteration, endTime, final: false });
+                this.display?.clearColors();
+                this.display?.clearMarkers?.();
+                this.update({ iteration: iteration + 1, counts: { ...EMPTY_COUNTS } });
+            },
+            onEnd: (endTime) => {
+                this.toSettle.push({ iteration: scheduler.currentIteration, endTime, final: true });
+            },
+            keepAlive: () => this.toSettle.length > 0,
+        };
+        this.startTime = this.deps.clock.now();
+        scheduler.start({ loop: options.loop !== null });
+        this.update({ status: scheduler.beatAt(this.deps.clock.now()) < 0 ? "countIn" : "playing" });
+    }
+
+    private onPlayTick(now: number): void {
+        const grader = this.grader;
+        const scheduler = this.scheduler;
+        if (!grader || !scheduler || !this.options) return;
+        if (this.snapshot.status === "countIn" && scheduler.beatAt(now) >= 0) this.update({ status: "playing" });
+        this.applyGrades(grader.advance(now));
+
+        const tolerance = this.options.toleranceMs;
+        const ready = this.toSettle.filter((item) => now > item.endTime + tolerance + 10);
+        for (const item of ready) {
+            this.toSettle.splice(this.toSettle.indexOf(item), 1);
+            if (item.final) this.applyGrades(grader.finish());
+            this.settlePass(item.iteration, item.final);
+        }
+
+        const expectedPitches = grader.upcoming(now - 60, now + 200);
+        if (expectedPitches.join() !== this.snapshot.expectedPitches.join()) this.update({ expectedPitches });
+    }
+
+    private settlePass(iteration: number, final: boolean): void {
+        if (!this.grader || !this.options || !this.timeline) return;
+        const timeline = this.timeline;
+        const events = this.grader.events.filter((e) => e.iteration === iteration);
+        const stats = computeStats(events, this.options.toleranceMs, (m) => measureLabel(timeline, m));
+        const passStart = this.passStartTimes.get(iteration) ?? this.startTime;
+        const now = this.deps.clock.now();
+        const result: RunResult = {
+            mode: "play",
+            startedAt: Date.now() - (now - passStart),
+            durationMs: now - passStart,
+            bpm: this.options.bpm,
+            measureRange: this.options.loop,
+            rhythmOnly: this.options.rhythmOnly,
+            stats,
+            iteration,
+        };
+        if (final) {
+            this.scheduler?.stop(true);
+            this.scheduler = null;
+            this.grader = null;
+            this.display?.hideCursor();
+            this.update({ status: "finished", lastResult: result, expectedPitches: [] });
+        } else {
+            this.update({ lastResult: result });
+        }
+        this.deps.onResult?.(result);
+    }
+
+    private onPlayPress(pitch: number, eventTime: number): void {
+        const grader = this.grader;
+        const scheduler = this.scheduler;
+        const timeline = this.timeline;
+        if (!grader || !scheduler || !timeline || !this.options) return;
+        // Latency compensation: when I actually played it.
+        const time = eventTime - this.options.latencyOffsetMs;
+        const iteration = scheduler.iterationAt(time);
+        let beat = scheduler.beatAt(time);
+        if (beat < 0 && iteration < scheduler.currentIteration) beat += timeline.totalBeats;
+        const measure = measureAtBeat(timeline, Math.max(0, beat));
+        const events = grader.press(pitch, time, measure?.measureIndex ?? 0, iteration);
+        if (events.length === 0) this.pendingExtraPosition.set(time, { measureIndex: measure?.measureIndex ?? 0, onset: Math.max(0, beat - (measure?.startBeats ?? 0)) });
+        this.applyGrades(events);
+    }
+
+    /** Where unmatched presses happened, so an "extra" can be marked in the score. */
+    private pendingExtraPosition = new Map<number, { measureIndex: number; onset: number }>();
+
+    private applyGrades(events: GradeEvent[]): void {
+        if (events.length === 0) return;
+        const counts = { ...this.snapshot.counts };
+        for (const event of events) {
+            const current = event.iteration === this.snapshot.iteration;
+            if (event.kind === "hit") {
+                const color = event.grade === "good" ? "good" : "timing";
+                for (const note of event.expected.notes) this.display?.colorNote(note, color);
+                this.flash(event.expected.midi, event.grade === "good" ? "good" : "timing");
+                if (current) {
+                    if (event.grade === "good") counts.good++;
+                    else counts.timing++;
+                }
+            } else if (event.kind === "missed") {
+                for (const note of event.expected.notes) this.display?.colorNote(note, "bad");
+                if (current) counts.missed++;
+            } else {
+                const position = this.pendingExtraPosition.get(event.time);
+                this.pendingExtraPosition.delete(event.time);
+                if (position && current) this.display?.markExtra?.(position.measureIndex, position.onset);
+                if (current) counts.extra++;
+            }
+        }
+        this.update({ counts });
     }
 
     // ---------- Shared ----------
@@ -342,7 +472,8 @@ export class PracticeController {
         if (event.type === "noteon") {
             this.held.add(event.note);
             this.update({ heldKeys: [...this.held] });
-            if (this.snapshot.status === "waiting" || (this.snapshot.status === "playing" && this.wait)) this.onWaitPress(event.note);
+            if (this.wait && (this.snapshot.status === "waiting" || this.snapshot.status === "playing")) this.onWaitPress(event.note);
+            else if (this.grader && (this.snapshot.status === "playing" || this.snapshot.status === "countIn")) this.onPlayPress(event.note, event.time);
         } else if (event.type === "noteoff") {
             this.held.delete(event.note);
             this.update({ heldKeys: [...this.held] });

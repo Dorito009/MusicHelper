@@ -1,5 +1,6 @@
 import Dexie, { type EntityTable } from "dexie";
 import type { LoopRange, ScoreConfig } from "../engine/scoreConfig.ts";
+import type { SessionStats } from "../engine/stats.ts";
 
 export type ScoreSource = "import" | "sight-reading";
 
@@ -23,32 +24,7 @@ export interface ScoreRecord {
 
 export type SessionMode = "wait" | "play";
 
-export interface WorstMeasure {
-    /** Written measure index. */
-    measureIndex: number;
-    /** Measure number as printed. */
-    label: string;
-    errors: number;
-}
-
-export interface SessionStats {
-    /** Notes I was expected to play. */
-    expected: number;
-    good: number;
-    early: number;
-    late: number;
-    missed: number;
-    extra: number;
-    /** Wrong notes pressed in wait-for-me mode. */
-    wrong: number;
-    accuracy: number;
-    offsetMeanMs: number | null;
-    offsetSpreadMs: number | null;
-    worstMeasures: WorstMeasure[];
-    /** Offset histogram: counts per bin, from -tolerance to +tolerance. */
-    histogram: number[];
-    histogramBinMs: number;
-}
+export type { SessionStats, WorstMeasure } from "../engine/stats.ts";
 
 export interface SessionRecord {
     id: string;
