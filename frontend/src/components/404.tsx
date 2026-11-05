@@ -6,7 +6,7 @@ export function NotFoundComponent() {
             <h1 className="display-1 fw-bold">404</h1>
             <p className="fs-2 fw-medium mt-4">Oops! Page not found</p>
             <p className="mt-4 mb-5">The page you're looking for doesn't exist.</p>
-            <Link to="/scales" className="btn btn-primary fw-semibold rounded px-4 py-2 custom-btn">
+            <Link to="/" className="btn btn-primary fw-semibold rounded px-4 py-2 custom-btn">
                 Go Home
             </Link>
         </div>

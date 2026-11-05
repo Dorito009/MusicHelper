@@ -4,5 +4,5 @@ import { tanstackRouter } from '@tanstack/router-plugin/vite'
 
 export default defineConfig({
   base: '/MusicHelper/',
-  plugins: [tanstackRouter(), react()],
+  plugins: [tanstackRouter({ target: 'react', autoCodeSplitting: true }), react()],
 })
